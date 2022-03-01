@@ -41,12 +41,16 @@ def updateQUBO(distance=None, total_distance=1000):
 
     return Q_complete
 
-distance = None
+# Location of the target
+real_location = {"x": 50, "y": 20}
+# Location of the agent
+agent_location = {"x": 100, "y": 40}
+
+distance = sqrt((real_location["x"] - agent_location["x"])**2 + (real_location["y"] - agent_location["y"])**2)
 total_distance = 500
 
 for i in range(ITERATIONS):
     # Pass current distance to function that updates the attention QUBO
-    # IS THE DISTANCE PASSED HERE SUPPOSED TO BE THE PERCEIVED DISTANCE OR THE REAL ONE?
     Q = updateQUBO(distance, total_distance)
 
     # Run sampler
@@ -68,10 +72,22 @@ for i in range(ITERATIONS):
     print(attention)
 
     # Observe the location
-    # TODO
+    perceived_location = blur(real_location, attention)
 
     # Move towards the location
-    # TODO
+    slope = (perceived_location["y"] - agent_location["y"]) / (perceived_location["x"] - agent_location["x"])
+    b = agent_location["y"] - (slope * agent_location["x"])
+    movex = -min([abs(perceived_location["x"] - agent_location["x"]), steps])
+    if perceived_location["x"] - agent_location["x"] < 0:
+        movex = -movex
+    agent_location["x"] = agent_location["x"] + movex
+    agent_location["y"] = slope * x + b
 
     # Update the distance
-    # TODO
+    distance = sqrt((real_location["x"] - agent_location["x"])**2 + (real_location["y"] - agent_location["y"])**2)
+
+def blur(real_location, attention_level):
+    blur = 100 - attention_level
+    real_location["x"] = real_location["x"] + blur
+    real_location["y"] = real_location["y"] + blur
+    return real_location
