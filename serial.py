@@ -10,19 +10,28 @@ NUM_READS = 15
 # Width and height of the coordinate plane
 WIDTH = 500
 HEIGHT = 500
+# Maximum distance between two points in the plane
+MAX_DIST = sqrt(WIDTH**2 + HEIGHT**2)
 # For now, speed is always constant
 SPEED = 10
 
+# Auxiliar function for calculating the distance between two points
+def dist(p1, p2):
+    return sqrt((p2[0] - p1[0])**2 + (p2[1] - p1[1])**2)
+
+# Class for the characters in the predator-prey model
 class Character:
 
     def __init__(self, name):
         self.name = name
         # Initialize characters at a random location
-        self.loc = (randint(0, WIDTH), randint(0, HEIGHT))
+        self.loc = [randint(0, WIDTH), randint(0, HEIGHT)]
         # Flag that is set to True if the character reached its target
         self.target_reached = False
         # Flag that is set to False if the character was reached by some other character (and is no longer alive)
         self.alive = True
+        # Keeps track of the location trace
+        self.trace = [self.loc]
         return
     
     # Get this agent's location given the attention level
@@ -62,6 +71,9 @@ class Character:
             # Update character's location
             self.loc[0] = self.loc[0] + movex
             self.loc[1] = slope * x + b
+        
+        # Update trace
+        self.trace.append(self.loc)
         return
 
     # Avoids the target at the given perceived location
@@ -94,87 +106,99 @@ class Character:
             # Update character's location
             self.loc[0] = self.loc[0] + movex
             self.loc[1] = slope * x + b
+        
+        # Update trace
+        self.trace.append(self.loc)
         return
 
+# Class for the attention allocation model
+class AttentionModel:
 
-
-def updateQUBO(distance=None, total_distance=1000):
-    if distance is None:
-        distance = randrange(total_distance)
+    def __init__(self):
+        pass
     
-    d = distance/total_distance
+    # Updates the QUBO given the distance to the target
+    def QUBO(self, dist):
+        # Ratio between distance and maximum possible distance
+        d = dist/MAX_DIST
 
-    Q_cost = {('25','25'): -(1 - 0.25),
-        ('50','50'): -(1 - 0.5),
-        ('75','75'): -(1 - 0.75),
-        ('100','100'): -(1 - 1),
-        ('25','50'): -(-(1 - 0.25) - (1 - 0.5)),
-        ('25','75'): -(-(1 - 0.25) - (1 - 0.75)),
-        ('25','100'): -(-(1 - 0.25) - -(1 - 1)),
-        ('50','75'): -(-(1 - 0.5) - (1 - 0.75)),
-        ('50','100'): -(-(1 - 0.5) - (1 - 1)),
-        ('75','100'): -(-(1 - 0.75) - (1 - 1))}
+        # Attention level dependent on cost
+        Q_cost = {('25','25'): -(1 - 0.25),
+            ('50','50'): -(1 - 0.5),
+            ('75','75'): -(1 - 0.75),
+            ('100','100'): -(1 - 1),
+            ('25','50'): -(-(1 - 0.25) - (1 - 0.5)),
+            ('25','75'): -(-(1 - 0.25) - (1 - 0.75)),
+            ('25','100'): -(-(1 - 0.25) - -(1 - 1)),
+            ('50','75'): -(-(1 - 0.5) - (1 - 0.75)),
+            ('50','100'): -(-(1 - 0.5) - (1 - 1)),
+            ('75','100'): -(-(1 - 0.75) - (1 - 1))}
 
-    Q_distance = {('25','25'): d - 1,
-        ('50','50'): 0.5*d - 0.9,
-        ('75','75'): -0.5*d - 0.4,
-        ('100','100'): -d,
-        ('25','50'): -(d - 1 + 0.5*d - 0.9),
-        ('25','75'): -(d - 1 - 0.5*d - 0.4),
-        ('25','100'): -(d - 1 - d),
-        ('50','75'): -(0.5*d - 0.9 - 0.5*d - 0.4),
-        ('50','100'): -(0.5*d - 0.9 - d),
-        ('75','100'): -(-0.5*d - 0.4 - d)}
+        # Attention level dependent on distance
+        Q_dist = {('25','25'): d - 1,
+            ('50','50'): 0.5*d - 0.9,
+            ('75','75'): -0.5*d - 0.4,
+            ('100','100'): -d,
+            ('25','50'): -(d - 1 + 0.5*d - 0.9),
+            ('25','75'): -(d - 1 - 0.5*d - 0.4),
+            ('25','100'): -(d - 1 - d),
+            ('50','75'): -(0.5*d - 0.9 - 0.5*d - 0.4),
+            ('50','100'): -(0.5*d - 0.9 - d),
+            ('75','100'): -(-0.5*d - 0.4 - d)}
 
-    Q_complete = {}
+        # Combine both QUBO formulations (cost and distance)
+        Q_complete = {}
+        for key in list(Q_cost.keys()):
+            Q_complete[key] = Q_cost[key] + Q_dist[key]
 
-    for key in list(Q_cost.keys()):
-        Q_complete[key] = Q_cost[key] + Q_distance[key]
+        return Q_complete
+    
+    # Allocates to a character given the distance to their target
+    def alloc_attention(self, dist):
+        # Get the QUBO formulation for the given distance
+        Q = self.QUBO(dist)
 
-    return Q_complete
+        # Run sampler
+        sampler = EmbeddingComposite(DWaveSampler())
+        
+        # Retrieve output
+        sampler_output = sampler.sample_qubo(Q, num_reads = NUM_READS)
 
-# Location of the target
-real_location = {"x": 50, "y": 20}
-# Location of the agent
-agent_location = {"x": 100, "y": 40}
+        # Get the attention
+        attention = sampler_output.record.sample[0]
+        if attention[0] == 1:
+            attention = 100
+        elif attention[1] == 1:
+            attention = 25
+        elif attention[2] == 1:
+            attention = 50
+        else:
+            attention = 75
 
-distance = sqrt((real_location["x"] - agent_location["x"])**2 + (real_location["y"] - agent_location["y"])**2)
-total_distance = 500
+        return attention
 
-for i in range(ITERATIONS):
-    # Pass current distance to function that updates the attention QUBO
-    Q = updateQUBO(distance, total_distance)
 
-    # Run sampler
-    sampler = EmbeddingComposite(DWaveSampler())
+def main():
+    # Initialize characters
+    agent = Character("agent")
+    prey = Character("prey")
+    predator = Character("predator")
 
-    sampler_output = sampler.sample_qubo(Q,
-                                        num_reads = NUM_READS)
+    # Run model for n iterations
+    for i in range(ITERATIONS):
 
-    # Get the attention
-    attention = sampler_output.record.sample[0]
-    if attention[0] == 1:
-        attention = 100
-    elif attention[1] == 1:
-        attention = 25
-    elif attention[2] == 1:
-        attention = 50
-    else:
-        attention = 75
-    print(attention)
+        # Get the attention levels for all three characters
+        # TODO
+        
+        # Update the location of the characters accordingly
+        prey.avoid(agent.perceive(attention_prey)) # Prey avoids agent
+        predator.pursue(agent.perceive(attention_predator)) # Predator pursues agent
+        # IS THIS ALLOWED? OR SHOULD THE AGENT DECIDE ON ONLY ONE OF THESE TWO POSSIBLE MOVES?
+        agent.avoid(predator.perceive(attention_agent)) # Agent avoids predator
+        agent.pursue(prey.perceive(attention_agent)) # Agent pursues prey
+    
+    return
 
-    # Observe the location
-    perceived_location = blur(real_location, attention)
 
-    # Move towards the location
-    slope = (perceived_location["y"] - agent_location["y"]) / (perceived_location["x"] - agent_location["x"])
-    b = agent_location["y"] - (slope * agent_location["x"])
-    movex = -min([abs(perceived_location["x"] - agent_location["x"]), steps])
-    if perceived_location["x"] - agent_location["x"] < 0:
-        movex = -movex
-    agent_location["x"] = agent_location["x"] + movex
-    agent_location["y"] = slope * x + b
-
-    # Update the distance
-    distance = sqrt((real_location["x"] - agent_location["x"])**2 + (real_location["y"] - agent_location["y"])**2)
-
+if __name__ == "__main__":
+    main()
