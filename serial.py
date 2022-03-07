@@ -5,7 +5,7 @@ from random import randrange, randint
 from numpy import sqrt
 
 # Number of iterations of the model
-ITERATIONS = 1
+ITERATIONS = 5
 # Number of reads in the annealer
 NUM_READS = 15
 # Width and height of the coordinate plane
@@ -33,6 +33,8 @@ class Character:
         self.alive = True
         # Keeps track of the location trace
         self.trace = [self.loc]
+        # Keeps track of attention levels
+        self.attention_trace = []
         return
     
     # Get this agent's location given the attention level
@@ -112,15 +114,22 @@ class Character:
         self.trace.append(self.loc)
         return
 
+    # Add attention to the attention_trace
+    def track_attention(self, attention):
+        self.attention_trace.append(attention)
+
     # Displays information about the character
     def __repr__(self):
         display = ['\n======<' + self.name + '>======']
         display.append('Is alive? ' + str(self.alive))
         display.append('Did it reach the target? ' + str(self.target_reached))
         display.append('Number of steps taken: ' + str(len(self.trace)))
-        display.append('Trace:')
+        display.append('Location trace:')
         for loc in self.trace:
             display.append(str(loc))
+        display.append('Attention trace:')
+        for attn in self.attention_trace:
+            display.append(str(attn))
         display.append('===============================\n')
         return "\n".join(display)
 
@@ -216,6 +225,11 @@ def main():
         attention_prey = attention_prey/total_attention * 100
         attention_agent = attention_agent/total_attention * 100
         attention_predator = attention_predator/total_attention * 100
+
+        # Keep track of attention levels
+        prey.track_attention(attention_prey)
+        agent.track_attention(attention_agent)
+        predator.track_attention(attention_predator)
         
         # Update the location of the characters accordingly
         prey.avoid(agent.perceive(attention_prey)) # Prey avoids agent
