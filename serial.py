@@ -2,6 +2,7 @@
 
 from dwave.system import EmbeddingComposite, DWaveSampler
 from random import randrange, randint
+from numpy import sqrt
 
 # Number of iterations of the model
 ITERATIONS = 5
@@ -70,7 +71,7 @@ class Character:
             
             # Update character's location
             self.loc[0] = self.loc[0] + movex
-            self.loc[1] = slope * x + b
+            self.loc[1] = slope * self.loc[0] + b
         
         # Update trace
         self.trace.append(self.loc)
@@ -105,7 +106,7 @@ class Character:
 
             # Update character's location
             self.loc[0] = self.loc[0] + movex
-            self.loc[1] = slope * x + b
+            self.loc[1] = slope * self.loc[0] + b
         
         # Update trace
         self.trace.append(self.loc)
