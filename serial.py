@@ -1,10 +1,51 @@
 # This file implements the serial approach to the predator-prey model in quantum computing
 
 from dwave.system import EmbeddingComposite, DWaveSampler
-from random import randrange
+from random import randrange, randint
 
+# Number of iterations of the model
 ITERATIONS = 5
+# Number of reads in the annealer
 NUM_READS = 15
+# Width and height of the coordinate plane
+WIDTH = 500
+HEIGHT = 500
+# For now, speed is always constant
+SPEED = 10
+
+class Character:
+
+    def __init__(self, name):
+        self.name = name
+        # Initialize characters at a random location
+        self.loc = (randint(0, WIDTH), randint(0, HEIGHT))
+    
+    # Get this agent's location given the attention level
+    def perceive(self, attention):
+        blur = 100 - attention
+        x = self.loc[0] + blur
+        y = self.loc[1] + blur
+        return (x, y)
+    
+    # Pursues the target at the given perceived location
+    def pursue(self, perceived_loc):
+        slope = (perceived_loc[1] - self.loc[1]) / (perceived_loc[0] - self.loc[1])
+        b = self.loc[1] - (slope * self.loc[0])
+
+        # Move left towards the target at a given speed
+        movex = -min([abs(perceived_loc[0] - self.loc[0]), SPEED])
+
+        # If the target is to the right, move right
+        if perceived_location["x"] - agent_location["x"] > 0:
+            movex = -movex
+        
+        # Update agent's location
+        self.loc[0] = self.loc[0] + movex
+        self.loc[1] = slope * x + b
+
+    # Avoids the target at the given perceived location
+    def avoid(self, perceived_loc):
+
 
 def updateQUBO(distance=None, total_distance=1000):
     if distance is None:
@@ -86,8 +127,3 @@ for i in range(ITERATIONS):
     # Update the distance
     distance = sqrt((real_location["x"] - agent_location["x"])**2 + (real_location["y"] - agent_location["y"])**2)
 
-def blur(real_location, attention_level):
-    blur = 100 - attention_level
-    real_location["x"] = real_location["x"] + blur
-    real_location["y"] = real_location["y"] + blur
-    return real_location
