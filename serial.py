@@ -19,6 +19,11 @@ class Character:
         self.name = name
         # Initialize characters at a random location
         self.loc = (randint(0, WIDTH), randint(0, HEIGHT))
+        # Flag that is set to True if the character reached its target
+        self.target_reached = False
+        # Flag that is set to False if the character was reached by some other character (and is no longer alive)
+        self.alive = True
+        return
     
     # Get this agent's location given the attention level
     def perceive(self, attention):
@@ -29,22 +34,68 @@ class Character:
     
     # Pursues the target at the given perceived location
     def pursue(self, perceived_loc):
-        slope = (perceived_loc[1] - self.loc[1]) / (perceived_loc[0] - self.loc[1])
-        b = self.loc[1] - (slope * self.loc[0])
+        # If the character has reached its target, set target_reached to True
+        if perceived_loc[0] == self.loc[0] and perceived_loc[1] == self.loc[1]:
+            self.target_reached = True
+        # If target is in the same x cordinate, only change y
+        elif perceived_loc[0] == self.loc[0]:
+            # Move up towards the target at a given speed
+            movey = min([abs(perceived_loc[1] - self.loc[1]), SPEED])
 
-        # Move left towards the target at a given speed
-        movex = -min([abs(perceived_loc[0] - self.loc[0]), SPEED])
+            # If the target is down, move down
+            if perceived_loc[1] - self.loc[1] < 0: 
+                movey = -movey
+            
+            # Update y
+            self.loc[1] = self.loc[1] + movey
+        else:
+            slope = (perceived_loc[1] - self.loc[1]) / (perceived_loc[0] - self.loc[1])
+            b = self.loc[1] - (slope * self.loc[0])
 
-        # If the target is to the right, move right
-        if perceived_location["x"] - agent_location["x"] > 0:
-            movex = -movex
-        
-        # Update agent's location
-        self.loc[0] = self.loc[0] + movex
-        self.loc[1] = slope * x + b
+            # Move right towards the target at a given speed
+            movex = min([abs(perceived_loc[0] - self.loc[0]), SPEED])
+
+            # If the target is to the left, move left
+            if perceived_loc[0] - self.loc[0] < 0:
+                movex = -movex
+            
+            # Update character's location
+            self.loc[0] = self.loc[0] + movex
+            self.loc[1] = slope * x + b
+        return
 
     # Avoids the target at the given perceived location
     def avoid(self, perceived_loc):
+        # If the character was caught set alive to False
+        if perceived_loc[0] == self.loc[0] and perceived_loc[1] == self.loc[1]:
+            self.alive = False
+        # If they are both in the same x-coordinate, only move y
+        elif perceived_loc[0] == self.loc[0]:
+            # Move down away from the target at a given speed
+            movey = -min([abs(perceived_loc[1] - self.loc[1]), SPEED])
+
+            # If the target is down, move up
+            if perceived_loc[1] - self.loc[1] < 0: 
+                movey = -movey
+            
+            # Update y
+            self.loc[1] = self.loc[1] + movey
+        else:
+            slope = (perceived_loc[1] - self.loc[1]) / (perceived_loc[0] - self.loc[1])
+            b = self.loc[1] - (slope * self.loc[0])
+            
+            # Move left away from the target at a given speed
+            movex = -min([abs(perceived_loc[0] - self.loc[0]), SPEED])
+
+            # If the target is to the left, move right
+            if perceived_loc[0] - self.loc[0] < 0:
+                movex = -movex
+
+            # Update character's location
+            self.loc[0] = self.loc[0] + movex
+            self.loc[1] = slope * x + b
+        return
+
 
 
 def updateQUBO(distance=None, total_distance=1000):
