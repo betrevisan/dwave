@@ -115,7 +115,7 @@ class Character:
 class AttentionModel:
 
     def __init__(self):
-        pass
+        self.name = "AttentionModel"
     
     # Updates the QUBO given the distance to the target
     def QUBO(self, dist):
@@ -184,11 +184,24 @@ def main():
     prey = Character("prey")
     predator = Character("predator")
 
+    # Initialize the attention allocation model
+    attention_model = AttentionModel()
+
     # Run model for n iterations
-    for i in range(ITERATIONS):
+    for _ in range(ITERATIONS):
 
         # Get the attention levels for all three characters
-        # TODO
+        # Prey's attention level using its distance to the agent
+        attention_prey = attention_model.alloc_attention(dist(prey.loc, agent.loc)) 
+        # Agent's attention level using the average between its distance to the prey and its distance to the predator
+        attention_agent = attention_model.alloc_attention((dist(agent.loc, prey.loc) + dist(agent.loc, predator.loc))/2)
+        # Predator's attention level using its distance to the agent
+        attention_predator = attention_model.alloc_attention(dist(predator.loc, agent.loc))
+
+        # Normalize attention levels so that they don't exceed 100
+        total_attention = attention_prey + attention_agent + attention_predator
+        # TODO TODO TODO TODO STOPPED HERE
+
         
         # Update the location of the characters accordingly
         prey.avoid(agent.perceive(attention_prey)) # Prey avoids agent
