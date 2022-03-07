@@ -5,7 +5,7 @@ from random import randrange, randint
 from numpy import sqrt
 
 # Number of iterations of the model
-ITERATIONS = 5
+ITERATIONS = 1
 # Number of reads in the annealer
 NUM_READS = 15
 # Width and height of the coordinate plane
@@ -112,6 +112,18 @@ class Character:
         self.trace.append(self.loc)
         return
 
+    # Displays information about the character
+    def __repr__(self):
+        display = ['\n======<' + self.name + '>======']
+        display.append('Is alive? ' + str(self.alive))
+        display.append('Did it reach the target? ' + str(self.target_reached))
+        display.append('Number of steps taken: ' + str(len(self.trace)))
+        display.append('Trace:')
+        for loc in self.trace:
+            display.append(str(loc))
+        display.append('===============================\n')
+        return "\n".join(display)
+
 # Class for the attention allocation model
 class AttentionModel:
 
@@ -212,6 +224,10 @@ def main():
         agent.avoid(predator.perceive(attention_agent)) # Agent avoids predator
         agent.pursue(prey.perceive(attention_agent)) # Agent pursues prey
     
+    print(agent)
+    print(prey)
+    print(predator)
+
     return
 
 
