@@ -200,8 +200,9 @@ def main():
 
         # Normalize attention levels so that they don't exceed 100
         total_attention = attention_prey + attention_agent + attention_predator
-        # TODO TODO TODO TODO STOPPED HERE
-
+        attention_prey = attention_prey/total_attention * 100
+        attention_agent = attention_agent/total_attention * 100
+        attention_predator = attention_predator/total_attention * 100
         
         # Update the location of the characters accordingly
         prey.avoid(agent.perceive(attention_prey)) # Prey avoids agent
