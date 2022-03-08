@@ -3,9 +3,12 @@
 from dwave.system import EmbeddingComposite, DWaveSampler
 from random import randrange, randint
 from numpy import sqrt
+import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib.animation import FuncAnimation
 
 # Number of iterations of the model
-ITERATIONS = 5
+ITERATIONS = 10
 # Number of reads in the annealer
 NUM_READS = 15
 # Width and height of the coordinate plane
@@ -128,15 +131,15 @@ class Character:
     def bounce_back(self):
         # Fix x-coordinate, if needed
         if self.loc[0] < 0:
-            self.loc[0] = abs(self.loc[0]) + 10
+            self.loc[0] = self.loc[0] + abs(self.loc[0]) + 10
         elif self.loc[0] > WIDTH:
-            self.loc[0] = -(self.loc[0] - WIDTH) - 10
+            self.loc[0] = self.loc[0] - (self.loc[0] - WIDTH) - 10
         
         # Fix y-coordinate, if needed
         if self.loc[1] < 0:
-            self.loc[1] = abs(self.loc[1]) + 10
+            self.loc[1] = self.loc[1] + abs(self.loc[1]) + 10
         elif self.loc[1] > HEIGHT:
-            self.loc[1] = -(self.loc[1] - HEIGHT) - 10
+            self.loc[1] = self.loc[1] - (self.loc[1] - HEIGHT) - 10
         
         return
 
@@ -296,37 +299,10 @@ def main():
     print(prey)
     print(predator)
 
-    # Animation of the simulation
-    data_init = [100, 200, 300]
-    colors = np.array(["green","blue","red"])
+    print(prey.trace)
+    print(agent.trace)
+    print(predator.trace)
 
-    fig, ax = plt.subplots()
-
-    ax.set_xlim(0, WIDTH+10)
-    ax.set_ylim(0, HEIGHT+10)
-
-    scatter=ax.scatter(data_init, data_init, c=colors)
-
-    prey_x = [i[0] for i in prey.trace]
-    prey_y = [i[1] for i in prey.trace]
-    agent_x = [i[0] for i in agent.trace]
-    agent_y = [i[1] for i in agent.trace]
-    predator_x = [i[0] for i in predator.trace]
-    predator_y = [i[1] for i in predator.trace]
-
-    # MIN BETWEEN THE LENGTH OF THE DATA SHOULD BE THE NUMBER OF FRAMES
-    frame_count = min([len(prey.trace), len(agent.trace), len(predator.trace)])
-
-    def update(frame_number):
-        new_offsets = [prey.trace[frame_number], agent.trace[frame_number], predator.trace[frame_number]]
-        scatter.set_offsets(new_offsets)
-        return scatter
-
-    anim = FuncAnimation(fig, update, frames=frame_count, interval=500)
-    plt.plot(predator_x, predator_y, 'r--')
-    plt.plot(agent_x, agent_y, 'g--')
-    plt.plot(prey_x, prey_y, 'b--')
-    plt.show()
     return
 
 if __name__ == "__main__":
