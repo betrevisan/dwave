@@ -29,7 +29,12 @@ class Character:
     def __init__(self, name):
         self.name = name
         # Initialize characters at a random location
-        self.loc = [randint(0, WIDTH), randint(0, HEIGHT)]
+        if name == "prey":
+            self.loc = [randint(0, int(WIDTH/3)), randint(0, HEIGHT)]
+        elif name == "agent":
+            self.loc = [randint(int(WIDTH/3), int(2*WIDTH/3)), randint(0, HEIGHT)]
+        else:
+            self.loc = [randint(int(2*WIDTH/3), WIDTH), randint(0, HEIGHT)]
         # Flag that is set to True if the character reached its target
         self.target_reached = False
         # Flag that is set to False if the character was reached by some other character (and is no longer alive)
