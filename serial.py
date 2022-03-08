@@ -14,7 +14,7 @@ HEIGHT = 500
 # Maximum distance between two points in the plane
 MAX_DIST = sqrt(WIDTH**2 + HEIGHT**2)
 # For now, speed is always constant
-SPEED = 10
+SPEED = 30
 
 # Auxiliar function for calculating the distance between two points
 def dist(p1, p2):
@@ -79,6 +79,9 @@ class Character:
             self.loc[0] = self.loc[0] + movex
             self.loc[1] = slope * self.loc[0] + b
         
+        # If the new location is out of range, bounce back
+        self.bounce_back()
+
         # Update trace
         self.trace.append(list(self.loc))
         return
@@ -114,17 +117,38 @@ class Character:
             self.loc[0] = self.loc[0] + movex
             self.loc[1] = slope * self.loc[0] + b
         
-        # Update trace
+        # If the new location is out of range, bounce back
+        self.bounce_back()
+
+        # Update trace 
         self.trace.append(list(self.loc))
+        return
+
+    # If the location is out of range, bounces it back into the range
+    def bounce_back(self):
+        # Fix x-coordinate, if needed
+        if self.loc[0] < 0:
+            self.loc[0] = abs(self.loc[0]) + 10
+        elif self.loc[0] > WIDTH:
+            self.loc[0] = -(self.loc[0] - WIDTH) - 10
+        
+        # Fix y-coordinate, if needed
+        if self.loc[1] < 0:
+            self.loc[1] = abs(self.loc[1]) + 10
+        elif self.loc[1] > HEIGHT:
+            self.loc[1] = -(self.loc[1] - HEIGHT) - 10
+        
         return
 
     # Add attention to the attention_trace
     def track_attention(self, attention):
         self.attention_trace.append(attention)
+        return
 
     # Add distance to the dist_trace
     def track_dist(self, dist):
         self.dist_trace.append(dist)
+        return
 
     # Displays information about the character
     def __repr__(self):
@@ -272,8 +296,38 @@ def main():
     print(prey)
     print(predator)
 
-    return
+    # Animation of the simulation
+    data_init = [100, 200, 300]
+    colors = np.array(["green","blue","red"])
 
+    fig, ax = plt.subplots()
+
+    ax.set_xlim(0, WIDTH+10)
+    ax.set_ylim(0, HEIGHT+10)
+
+    scatter=ax.scatter(data_init, data_init, c=colors)
+
+    prey_x = [i[0] for i in prey.trace]
+    prey_y = [i[1] for i in prey.trace]
+    agent_x = [i[0] for i in agent.trace]
+    agent_y = [i[1] for i in agent.trace]
+    predator_x = [i[0] for i in predator.trace]
+    predator_y = [i[1] for i in predator.trace]
+
+    # MIN BETWEEN THE LENGTH OF THE DATA SHOULD BE THE NUMBER OF FRAMES
+    frame_count = min([len(prey.trace), len(agent.trace), len(predator.trace)])
+
+    def update(frame_number):
+        new_offsets = [prey.trace[frame_number], agent.trace[frame_number], predator.trace[frame_number]]
+        scatter.set_offsets(new_offsets)
+        return scatter
+
+    anim = FuncAnimation(fig, update, frames=frame_count, interval=500)
+    plt.plot(predator_x, predator_y, 'r--')
+    plt.plot(agent_x, agent_y, 'g--')
+    plt.plot(prey_x, prey_y, 'b--')
+    plt.show()
+    return
 
 if __name__ == "__main__":
     main()
