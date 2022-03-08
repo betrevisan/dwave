@@ -32,9 +32,13 @@ class Character:
         # Flag that is set to False if the character was reached by some other character (and is no longer alive)
         self.alive = True
         # Keeps track of the location trace
-        self.trace = [self.loc]
+        self.trace = [list(self.loc)]
         # Keeps track of attention levels
         self.attention_trace = []
+        # Keeps track of distances
+        self.dist_trace = []
+        # Flag that decribes whether the agent is escaping or pursuing (only used in the agent character)
+        self.escaping = False
         return
     
     # Get this agent's location given the attention level
@@ -76,7 +80,7 @@ class Character:
             self.loc[1] = slope * self.loc[0] + b
         
         # Update trace
-        self.trace.append(self.loc)
+        self.trace.append(list(self.loc))
         return
 
     # Avoids the target at the given perceived location
@@ -111,12 +115,16 @@ class Character:
             self.loc[1] = slope * self.loc[0] + b
         
         # Update trace
-        self.trace.append(self.loc)
+        self.trace.append(list(self.loc))
         return
 
     # Add attention to the attention_trace
     def track_attention(self, attention):
         self.attention_trace.append(attention)
+
+    # Add distance to the dist_trace
+    def track_dist(self, dist):
+        self.dist_trace.append(dist)
 
     # Displays information about the character
     def __repr__(self):
@@ -130,6 +138,18 @@ class Character:
         display.append('Attention trace:')
         for attn in self.attention_trace:
             display.append(str(attn))
+        if self.name == "prey":
+            display.append('Distance to agent trace:')
+            for d in self.dist_trace:
+                display.append(str(d))
+        elif self.name == "predator":
+            display.append('Distance to agent trace:')
+            for d in self.dist_trace:
+                display.append(str(d))
+        else:
+            display.append('Distance to prey and predator (respectively) trace:')
+            for d in self.dist_trace:
+                display.append(str(d))
         display.append('===============================\n')
         return "\n".join(display)
 
@@ -157,16 +177,16 @@ class AttentionModel:
             ('75','100'): -(-(1 - 0.75) - (1 - 1))}
 
         # Attention level dependent on distance
-        Q_dist = {('25','25'): d - 1,
-            ('50','50'): 0.5*d - 0.9,
-            ('75','75'): -0.5*d - 0.4,
-            ('100','100'): -d,
-            ('25','50'): -(d - 1 + 0.5*d - 0.9),
-            ('25','75'): -(d - 1 - 0.5*d - 0.4),
-            ('25','100'): -(d - 1 - d),
-            ('50','75'): -(0.5*d - 0.9 - 0.5*d - 0.4),
-            ('50','100'): -(0.5*d - 0.9 - d),
-            ('75','100'): -(-0.5*d - 0.4 - d)}
+        Q_dist = {('25','25'): -d,
+            ('50','50'): -0.5*d - 0.4,
+            ('75','75'): 0.5*d - 0.9,
+            ('100','100'): d - 1,
+            ('25','50'): -(-d -0.5*d - 0.4),
+            ('25','75'): -(-d +0.5*d - 0.9),
+            ('25','100'): -(-d +d - 1),
+            ('50','75'): -(-0.5*d - 0.4 +0.5*d - 0.9),
+            ('50','100'): -(-0.5*d - 0.4 + d - 1),
+            ('75','100'): -(0.5*d - 0.9 + d - 1)}
 
         # Combine both QUBO formulations (cost and distance)
         Q_complete = {}
@@ -234,9 +254,19 @@ def main():
         # Update the location of the characters accordingly
         prey.avoid(agent.perceive(attention_prey)) # Prey avoids agent
         predator.pursue(agent.perceive(attention_predator)) # Predator pursues agent
-        # IS THIS ALLOWED? OR SHOULD THE AGENT DECIDE ON ONLY ONE OF THESE TWO POSSIBLE MOVES?
-        agent.avoid(predator.perceive(attention_agent)) # Agent avoids predator
-        agent.pursue(prey.perceive(attention_agent)) # Agent pursues prey
+        if agent.escaping:
+            # Agent avoids predator
+            agent.avoid(predator.perceive(attention_agent)) 
+            agent.escaping = False
+        else:
+            # Agent pursues prey
+            agent.pursue(prey.perceive(attention_agent)) 
+            agent.escaping = True
+
+        # Keep track of distances
+        prey.track_dist(dist(prey.loc, agent.loc))
+        agent.track_dist([dist(prey.loc, agent.loc), dist(predator.loc, agent.loc)])
+        predator.track_dist(dist(predator.loc, agent.loc))
     
     print(agent)
     print(prey)
