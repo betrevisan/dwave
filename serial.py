@@ -312,3 +312,16 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
+
+
+# Adjust the movement based on the attention level of the agent
+# Prey and Predator know the exact location of the agent
+# The agent moves based on the perceived location of itself and the perceived location of its targets
+# The agent will move in a superposition of avoidance and pursuit (give a heavier weight to pursuit)
+# Calculate the error based on the attention that would be allocated by a classical system vs that of dwave
+# Calculate the error of where agent moves vs where it should be moving with full attention
+# Calculate the error of where the agent moves with dwave vs with the classical version
+# To get these errors, first do not have the prey and the predator move
+# Once that is okay, have them move withh full attention on their targets (ie they always know the precise location of the agent)
