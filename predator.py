@@ -1,3 +1,6 @@
+from random import randrange, randint
+import numpy as np
+
 # Class for the Predator in the predator-prey model
 class Predator:
 
@@ -25,7 +28,7 @@ class Predator:
         v = np.linalg.norm(np.array(self.loc)-np.array(perceived_loc))
 
         # Move predator alongside this vector at a given speed
-        d = speed / (sqrt(v[0]**2 + v[1]**2))
+        d = speed / (np.sqrt(np.sum(np.square(v))))
         new_loc = np.array(self.loc) + d * v
 
         # Update location
@@ -61,7 +64,6 @@ class Predator:
     # Displays information about the character
     def __repr__(self):
         display = ['\n======<PREDATOR>======']
-        display.append('Is alive? ' + str(self.alive))
         display.append('Did it reach the target? ' + str(self.feasted))
         display.append('Number of steps taken: ' + str(len(self.trace)))
         display.append('Location trace:')

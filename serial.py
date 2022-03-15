@@ -1,14 +1,15 @@
 # This file implements the serial approach to the predator-prey model in quantum computing
 
 from dwave.system import EmbeddingComposite, DWaveSampler
-from random import randrange, randint
 from numpy import sqrt
-import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
+import agent as agent_mod
+import predator as predator_mod
+import prey as prey_mod
 
 # Number of iterations of the model
-ITERATIONS = 10
+ITERATIONS = 1
 # Number of reads in the annealer
 NUM_READS = 15
 # Width and height of the coordinate plane
@@ -18,12 +19,12 @@ HEIGHT = 500
 MAX_DIST = sqrt(WIDTH**2 + HEIGHT**2)
 # For now, speed is always constant
 SPEED = 30
+# Bias on pursuing over avoiding for the agent's movement
+BIAS = 0.3
 
 # Auxiliar function for calculating the distance between two points
 def dist(p1, p2):
     return sqrt((p2[0] - p1[0])**2 + (p2[1] - p1[1])**2)
-
-
 
 # Class for the attention allocation model
 class AttentionModel:
@@ -94,9 +95,9 @@ class AttentionModel:
 
 def main():
     # Initialize characters
-    agent = Character("agent")
-    prey = Character("prey")
-    predator = Character("predator")
+    agent = agent_mod.Agent(WIDTH, HEIGHT)
+    prey = prey_mod.Prey(WIDTH, HEIGHT)
+    predator = predator_mod.Predator(WIDTH, HEIGHT)
 
     # Initialize the attention allocation model
     attention_model = AttentionModel()
@@ -119,28 +120,17 @@ def main():
         attention_predator = attention_predator/total_attention * 100
 
         # Keep track of attention levels
-        agent.track_attention_prey(attention_prey)
-        agent.track_attention_agent(attention_agent)
-        agent.track_attention_predator(attention_predator)
+        agent.track_attention([attention_agent, attention_prey, attention_predator])
         
         # Move Prey and Predator
-        prey.avoid(agent.perceive(100)) # Prey avoids agent
-        predator.pursue(agent.perceive(100)) # Predator pursues agent
+        prey.avoid(agent.perceive(100), SPEED) # Prey avoids agent
+        predator.pursue(agent.perceive(100), SPEED) # Predator pursues agent
 
         # Move Agent
-        if agent.escaping:
-            # Agent avoids predator
-            agent.avoid(predator.perceive(attention_agent)) 
-            agent.escaping = False
-        else:
-            # Agent pursues prey
-            agent.pursue(prey.perceive(attention_agent)) 
-            agent.escaping = True
+        agent.move(agent.perceive(attention_agent), prey.perceive(attention_prey), predator.perceive(attention_predator), SPEED, BIAS)
 
         # Keep track of distances
-        prey.track_dist(dist(prey.loc, agent.loc))
         agent.track_dist([dist(prey.loc, agent.loc), dist(predator.loc, agent.loc)])
-        predator.track_dist(dist(predator.loc, agent.loc))
     
     print(agent)
     print(prey)
@@ -154,7 +144,6 @@ if __name__ == "__main__":
 
 
 
-# The agent will move in a superposition of avoidance and pursuit (give a heavier weight to pursuit)
 # Calculate the error based on the attention that would be allocated by a classical system vs that of dwave
 # Calculate the error of where agent moves vs where it should be moving with full attention
 # Calculate the error of where the agent moves with dwave vs with the classical version

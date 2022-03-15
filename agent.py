@@ -1,3 +1,6 @@
+from random import randrange, randint
+import numpy as np
+
 # Class for the Agent in the predator-prey model
 class Agent:
 
@@ -102,22 +105,22 @@ class Agent:
     #     return
 
     # Move the agent given perceived locations
-    def move(self, prey_loc, predator_loc, speed, bias):
+    def move(self, agent_loc, prey_loc, predator_loc, speed, bias):
         # If the agent has been caught, set alive to False
         if predator_loc[0] == self.loc[0] and predator_loc[1] == self.loc[1]:
             self.alive = False
 
         # Vector between the agent and prey
-        v_prey = np.linalg.norm(np.array(self.loc)-np.array(prey_loc))
+        v_prey = np.linalg.norm(np.array(agent_loc)-np.array(prey_loc))
         # Vector between the agent and predator
-        v_predator = np.linalg.norm(np.array(self.loc)-np.array(predator_loc))
+        v_predator = np.linalg.norm(np.array(agent_loc)-np.array(predator_loc))
 
         # Superposition of the two vector given a bias on the prey
         v_superposition = ((1 + bias) * v_prey + v_predator) / 2
 
         # Move agent alongside the superposition vector at a given speed
-        d = speed / (sqrt(v_superposition[0]**2 + v_superposition[1]**2))
-        new_loc = np.array(self.loc) - d * v_superposition
+        d = speed / (np.sqrt(np.sum(np.square(v_superposition))))
+        new_loc = np.array(agent_loc) - d * v_superposition
 
         # If the agent has reached its prey, set feasted to True
         if prey_loc[0] == self.loc[0] and prey_loc[1] == self.loc[1]:
@@ -168,10 +171,10 @@ class Agent:
         display.append('Location trace:')
         for loc in self.trace:
             display.append(str(loc))
-        display.append('Attention trace:')
+        display.append('Attention trace (agent, prey, predator):')
         for attn in self.attention_trace:
             display.append(str(attn))
-        display.append('Distances trace:')
+        display.append('Distances trace (dist to prey, dist to predator):')
         for dist in self.dist_trace:
             display.append(str(dist))
         display.append('===============================\n')
