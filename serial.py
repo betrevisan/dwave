@@ -23,167 +23,7 @@ SPEED = 30
 def dist(p1, p2):
     return sqrt((p2[0] - p1[0])**2 + (p2[1] - p1[1])**2)
 
-# Class for the characters in the predator-prey model
-class Character:
 
-    def __init__(self, name):
-        self.name = name
-        # Initialize characters at a random location
-        if name == "prey":
-            self.loc = [randint(0, int(WIDTH/3)), randint(0, HEIGHT)]
-        elif name == "agent":
-            self.loc = [randint(int(WIDTH/3), int(2*WIDTH/3)), randint(0, HEIGHT)]
-        else:
-            self.loc = [randint(int(2*WIDTH/3), WIDTH), randint(0, HEIGHT)]
-        # Flag that is set to True if the character reached its target
-        self.target_reached = False
-        # Flag that is set to False if the character was reached by some other character (and is no longer alive)
-        self.alive = True
-        # Keeps track of the location trace
-        self.trace = [list(self.loc)]
-        # Keeps track of attention levels
-        self.attention_trace = []
-        # Keeps track of distances
-        self.dist_trace = []
-        # Flag that decribes whether the agent is escaping or pursuing (only used in the agent character)
-        self.escaping = False
-        return
-    
-    # Get this agent's location given the attention level
-    def perceive(self, attention):
-        blur = 100 - attention
-        x = self.loc[0] + blur
-        y = self.loc[1] + blur
-        return (x, y)
-    
-    # Pursues the target at the given perceived location
-    def pursue(self, perceived_loc):
-        # If the character has reached its target, set target_reached to True
-        if perceived_loc[0] == self.loc[0] and perceived_loc[1] == self.loc[1]:
-            self.target_reached = True
-        # If target is in the same x cordinate, only change y
-        elif perceived_loc[0] == self.loc[0]:
-            # Move up towards the target at a given speed
-            movey = min([abs(perceived_loc[1] - self.loc[1]), SPEED])
-
-            # If the target is down, move down
-            if perceived_loc[1] - self.loc[1] < 0: 
-                movey = -movey
-            
-            # Update y
-            self.loc[1] = self.loc[1] + movey
-        else:
-            slope = (perceived_loc[1] - self.loc[1]) / (perceived_loc[0] - self.loc[1])
-            b = self.loc[1] - (slope * self.loc[0])
-
-            # Move right towards the target at a given speed
-            movex = min([abs(perceived_loc[0] - self.loc[0]), SPEED])
-
-            # If the target is to the left, move left
-            if perceived_loc[0] - self.loc[0] < 0:
-                movex = -movex
-            
-            # Update character's location
-            self.loc[0] = self.loc[0] + movex
-            self.loc[1] = slope * self.loc[0] + b
-        
-        # If the new location is out of range, bounce back
-        self.bounce_back()
-
-        # Update trace
-        self.trace.append(list(self.loc))
-        return
-
-    # Avoids the target at the given perceived location
-    def avoid(self, perceived_loc):
-        # If the character was caught set alive to False
-        if perceived_loc[0] == self.loc[0] and perceived_loc[1] == self.loc[1]:
-            self.alive = False
-        # If they are both in the same x-coordinate, only move y
-        elif perceived_loc[0] == self.loc[0]:
-            # Move down away from the target at a given speed
-            movey = -min([abs(perceived_loc[1] - self.loc[1]), SPEED])
-
-            # If the target is down, move up
-            if perceived_loc[1] - self.loc[1] < 0: 
-                movey = -movey
-            
-            # Update y
-            self.loc[1] = self.loc[1] + movey
-        else:
-            slope = (perceived_loc[1] - self.loc[1]) / (perceived_loc[0] - self.loc[1])
-            b = self.loc[1] - (slope * self.loc[0])
-            
-            # Move left away from the target at a given speed
-            movex = -min([abs(perceived_loc[0] - self.loc[0]), SPEED])
-
-            # If the target is to the left, move right
-            if perceived_loc[0] - self.loc[0] < 0:
-                movex = -movex
-
-            # Update character's location
-            self.loc[0] = self.loc[0] + movex
-            self.loc[1] = slope * self.loc[0] + b
-        
-        # If the new location is out of range, bounce back
-        self.bounce_back()
-
-        # Update trace 
-        self.trace.append(list(self.loc))
-        return
-
-    # If the location is out of range, bounces it back into the range
-    def bounce_back(self):
-        # Fix x-coordinate, if needed
-        if self.loc[0] < 0:
-            self.loc[0] = self.loc[0] + abs(self.loc[0]) + 10
-        elif self.loc[0] > WIDTH:
-            self.loc[0] = self.loc[0] - (self.loc[0] - WIDTH) - 10
-        
-        # Fix y-coordinate, if needed
-        if self.loc[1] < 0:
-            self.loc[1] = self.loc[1] + abs(self.loc[1]) + 10
-        elif self.loc[1] > HEIGHT:
-            self.loc[1] = self.loc[1] - (self.loc[1] - HEIGHT) - 10
-        
-        return
-
-    # Add attention to the attention_trace
-    def track_attention(self, attention):
-        self.attention_trace.append(attention)
-        return
-
-    # Add distance to the dist_trace
-    def track_dist(self, dist):
-        self.dist_trace.append(dist)
-        return
-
-    # Displays information about the character
-    def __repr__(self):
-        display = ['\n======<' + self.name + '>======']
-        display.append('Is alive? ' + str(self.alive))
-        display.append('Did it reach the target? ' + str(self.target_reached))
-        display.append('Number of steps taken: ' + str(len(self.trace)))
-        display.append('Location trace:')
-        for loc in self.trace:
-            display.append(str(loc))
-        display.append('Attention trace:')
-        for attn in self.attention_trace:
-            display.append(str(attn))
-        if self.name == "prey":
-            display.append('Distance to agent trace:')
-            for d in self.dist_trace:
-                display.append(str(d))
-        elif self.name == "predator":
-            display.append('Distance to agent trace:')
-            for d in self.dist_trace:
-                display.append(str(d))
-        else:
-            display.append('Distance to prey and predator (respectively) trace:')
-            for d in self.dist_trace:
-                display.append(str(d))
-        display.append('===============================\n')
-        return "\n".join(display)
 
 # Class for the attention allocation model
 class AttentionModel:
@@ -279,13 +119,15 @@ def main():
         attention_predator = attention_predator/total_attention * 100
 
         # Keep track of attention levels
-        prey.track_attention(attention_prey)
-        agent.track_attention(attention_agent)
-        predator.track_attention(attention_predator)
+        agent.track_attention_prey(attention_prey)
+        agent.track_attention_agent(attention_agent)
+        agent.track_attention_predator(attention_predator)
         
-        # Update the location of the characters accordingly
-        prey.avoid(agent.perceive(attention_prey)) # Prey avoids agent
-        predator.pursue(agent.perceive(attention_predator)) # Predator pursues agent
+        # Move Prey and Predator
+        prey.avoid(agent.perceive(100)) # Prey avoids agent
+        predator.pursue(agent.perceive(100)) # Predator pursues agent
+
+        # Move Agent
         if agent.escaping:
             # Agent avoids predator
             agent.avoid(predator.perceive(attention_agent)) 
@@ -304,10 +146,6 @@ def main():
     print(prey)
     print(predator)
 
-    print(prey.trace)
-    print(agent.trace)
-    print(predator.trace)
-
     return
 
 if __name__ == "__main__":
@@ -316,12 +154,8 @@ if __name__ == "__main__":
 
 
 
-# Adjust the movement based on the attention level of the agent
-# Prey and Predator know the exact location of the agent
-# The agent moves based on the perceived location of itself and the perceived location of its targets
 # The agent will move in a superposition of avoidance and pursuit (give a heavier weight to pursuit)
 # Calculate the error based on the attention that would be allocated by a classical system vs that of dwave
 # Calculate the error of where agent moves vs where it should be moving with full attention
 # Calculate the error of where the agent moves with dwave vs with the classical version
 # To get these errors, first do not have the prey and the predator move
-# Once that is okay, have them move withh full attention on their targets (ie they always know the precise location of the agent)
