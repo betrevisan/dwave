@@ -151,4 +151,5 @@ if __name__ == "__main__":
 # Calculate the error based on the attention that would be allocated by a classical system vs that of dwave
 # Calculate the error of where agent moves vs where it should be moving with full attention
 # Calculate the error of where the agent moves with dwave vs with the classical version
+# ASK HOW TO GET THIS CLASSICAL VERSION
 # To get these errors, first do not have the prey and the predator move
