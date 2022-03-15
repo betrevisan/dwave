@@ -9,7 +9,7 @@ import predator as predator_mod
 import prey as prey_mod
 
 # Number of iterations of the model
-ITERATIONS = 1
+ITERATIONS = 5
 # Number of reads in the annealer
 NUM_READS = 15
 # Width and height of the coordinate plane
@@ -128,6 +128,10 @@ def main():
 
         # Move Agent
         agent.move(agent.perceive(attention_agent), prey.perceive(attention_prey), predator.perceive(attention_predator), SPEED, BIAS)
+
+        # Check the error between moving with attention versus with full attention
+        agent.move_with_full_attention(agent.perceive(100), prey.perceive(100), predator.perceive(100), SPEED, BIAS)
+
 
         # Keep track of distances
         agent.track_dist([dist(prey.loc, agent.loc), dist(predator.loc, agent.loc)])

@@ -19,6 +19,8 @@ class Agent:
         # Width and Height of the environment
         self.w = w
         self.h = h
+        # Error metrics
+        self.movement_error = []
         return
     
     # Get this agent's location given the attention level
@@ -136,6 +138,24 @@ class Agent:
         self.trace.append(list(self.loc))
         return
 
+    # For testing purposes
+    def move_with_full_attention(self, agent_loc, prey_loc, predator_loc, speed, bias):
+        # Vector between the agent and prey
+        v_prey = np.linalg.norm(np.array(agent_loc)-np.array(prey_loc))
+        # Vector between the agent and predator
+        v_predator = np.linalg.norm(np.array(agent_loc)-np.array(predator_loc))
+
+        # Superposition of the two vector given a bias on the prey
+        v_superposition = ((1 + bias) * v_prey + v_predator) / 2
+
+        # Move agent alongside the superposition vector at a given speed
+        d = speed / (np.sqrt(np.sum(np.square(v_superposition))))
+        new_loc = np.array(agent_loc) - d * v_superposition
+
+        self.movement_error.append(new_loc - np.array(self.loc))
+        
+        return
+
     # If the location is out of range, bounces it back into the range
     def bounce_back(self):
         # Fix x-coordinate, if needed
@@ -177,5 +197,11 @@ class Agent:
         display.append('Distances trace (dist to prey, dist to predator):')
         for dist in self.dist_trace:
             display.append(str(dist))
+        ex_sum = 0
+        ey_sum = 0
+        for e in self.movement_error:
+            ex_sum += e[0]
+            ey_sum += e[1]
+        display.append('Movement Error: ' + str(ex_sum/len(self.movement_error)) + ', ' + str(ey_sum/len(self.movement_error)))
         display.append('===============================\n')
         return "\n".join(display)
