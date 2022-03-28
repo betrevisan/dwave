@@ -4,12 +4,12 @@ from dwave.system import EmbeddingComposite, DWaveSampler
 from numpy import sqrt
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
-import agent as agent_mod
-import predator as predator_mod
-import prey as prey_mod
+from characters import agent as agent_mod
+from characters import predator as predator_mod
+from characters import prey as prey_mod
 
 # Number of iterations of the model
-ITERATIONS = 5
+ITERATIONS = 1
 # Number of reads in the annealer
 NUM_READS = 15
 # Width and height of the coordinate plane
