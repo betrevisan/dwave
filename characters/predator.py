@@ -1,10 +1,11 @@
-from random import randrange, randint
+from random import randrange, randint, seed
 import numpy as np
 
 # Class for the Predator in the predator-prey model
 class Predator:
 
     def __init__(self, w, h):
+        seed(2)
         self.loc = [randint(int(2*w/3), w), randint(0, h)]
         # Flag that is set to True if the character reached its prey
         self.feasted = False

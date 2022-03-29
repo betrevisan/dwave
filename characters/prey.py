@@ -1,10 +1,11 @@
-from random import randrange, randint
+from random import randrange, randint, seed
 import numpy as np
 
 # Class for the Prey in the predator-prey model
 class Prey:
 
     def __init__(self, w, h):
+        seed(3)
         self.loc = [randint(0, int(w/3)), randint(0, h)]
         # Flag that is set to False if the character was reached by some other character (and is no longer alive)
         self.alive = True
