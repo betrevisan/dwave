@@ -31,29 +31,41 @@ class Agent:
         return (x, y)
 
     # Move the agent given perceived locations
-    def move(self, agent_loc, prey_loc, predator_loc, speed, bias):
+    def move(self, agent_perceived, prey_perceived, predator_perceived,
+                prey_real, predator_real, speed, bias):
+        buffer = 10 # If the distance between prey and predator is less than 10 it counts as a contact
+        agent_real_v = np.array(self.loc) # Vector for the agent's real location
+        agent_perceived_v = np.array(agent_perceived) # Vector for the agent's perceived location
+        prey_real_v = np.array(prey_real) # Vector for the prey's real location
+        prey_perceived_v = np.array(prey_perceived) # Vector for the prey's perceived location
+        pred_real_v = np.array(predator_real) # Vector for the predator's real location
+        pred_perceived_v = np.array(predator_perceived) # Vector for the predator's perceived location
+
+        real_dist_to_pred = np.linalg.norm(pred_real_v - agent_real_v)
         # If the agent has been caught, set alive to False
-        if predator_loc[0] == self.loc[0] and predator_loc[1] == self.loc[1]:
+        if real_dist_to_pred < buffer:
             self.alive = False
 
-        # Vector between the agent and prey
-        v_prey = np.linalg.norm(np.array(agent_loc)-np.array(prey_loc))
-        # Vector between the agent and predator
-        v_predator = np.linalg.norm(np.array(agent_loc)-np.array(predator_loc))
+        # Reflect the predator's location along the agent's coordinates
+        new_pred_perceived_v = agent_perceived_v - (pred_perceived_v - agent_perceived_v)
 
-        # Superposition of the two vector given a bias on the prey
-        v_superposition = ((1 + bias) * v_prey + v_predator) / 2
-
+        # Get point in between predator's and prey's (superposition of pursuit and avoidance)
+        super_v = new_pred_perceived_v + bias * (prey_perceived_v - new_pred_perceived_v)
+        
+        move_v =  super_v - agent_perceived_v
         # Move agent alongside the superposition vector at a given speed
-        d = speed / (np.sqrt(np.sum(np.square(v_superposition))))
-        new_loc = np.array(agent_loc) - d * v_superposition
-
-        # If the agent has reached its prey, set feasted to True
-        if prey_loc[0] == self.loc[0] and prey_loc[1] == self.loc[1]:
-            self.feasted = True
+        d = speed / np.linalg.norm(move_v)
+        if d > 1:
+            d = 1
+        new_loc = np.floor((agent_real_v + d * move_v))
 
         # Update location
         self.loc = new_loc
+
+        real_dist_to_prey = np.linalg.norm(prey_real_v - np.array(self.loc))
+        # If the agent has reached its prey, set feasted to True
+        if real_dist_to_prey < buffer:
+            self.feasted = True
         
         # If the new location is out of range, bounce back
         self.bounce_back()
@@ -62,37 +74,19 @@ class Agent:
         self.trace.append(list(self.loc))
         return
 
-    # For testing purposes
-    def move_with_full_attention(self, agent_loc, prey_loc, predator_loc, speed, bias):
-        # Vector between the agent and prey
-        v_prey = np.linalg.norm(np.array(agent_loc)-np.array(prey_loc))
-        # Vector between the agent and predator
-        v_predator = np.linalg.norm(np.array(agent_loc)-np.array(predator_loc))
-
-        # Superposition of the two vector given a bias on the prey
-        v_superposition = ((1 + bias) * v_prey + v_predator) / 2
-
-        # Move agent alongside the superposition vector at a given speed
-        d = speed / (np.sqrt(np.sum(np.square(v_superposition))))
-        new_loc = np.array(agent_loc) - d * v_superposition
-
-        self.movement_error.append(new_loc - np.array(self.loc))
-        
-        return
-
     # If the location is out of range, bounces it back into the range
     def bounce_back(self):
         # Fix x-coordinate, if needed
         if self.loc[0] < 0:
-            self.loc[0] = self.loc[0] + abs(self.loc[0]) + 10
+            self.loc[0] = 1
         elif self.loc[0] > self.w:
-            self.loc[0] = self.loc[0] - (self.loc[0] - self.w) - 10
+            self.loc[0] = self.w - 1
         
         # Fix y-coordinate, if needed
         if self.loc[1] < 0:
-            self.loc[1] = self.loc[1] + abs(self.loc[1]) + 10
+            self.loc[1] = 1
         elif self.loc[1] > self.h:
-            self.loc[1] = self.loc[1] - (self.loc[1] - self.h) - 10
+            self.loc[1] = self.h - 1
         
         return
 
@@ -113,19 +107,15 @@ class Agent:
         display.append('Did it reach the target? ' + str(self.feasted))
         display.append('Number of steps taken: ' + str(len(self.trace)))
         display.append('Location trace:')
+        trace_str = ""
         for loc in self.trace:
-            display.append(str(loc))
+            trace_str += ", " + str(loc)
+        display.append(trace_str)
         display.append('Attention trace (agent, prey, predator):')
         for attn in self.attention_trace:
             display.append(str(attn))
         display.append('Distances trace (dist to prey, dist to predator):')
         for dist in self.dist_trace:
             display.append(str(dist))
-        ex_sum = 0
-        ey_sum = 0
-        for e in self.movement_error:
-            ex_sum += e[0]
-            ey_sum += e[1]
-        display.append('Movement Error: ' + str(ex_sum/len(self.movement_error)) + ', ' + str(ey_sum/len(self.movement_error)))
         display.append('===============================\n')
         return "\n".join(display)

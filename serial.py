@@ -9,7 +9,7 @@ from characters import predator as predator_mod
 from characters import prey as prey_mod
 
 # Number of iterations of the model
-ITERATIONS = 1
+ITERATIONS = 5
 # Number of reads in the annealer
 NUM_READS = 15
 # Width and height of the coordinate plane
@@ -20,7 +20,7 @@ MAX_DIST = sqrt(WIDTH**2 + HEIGHT**2)
 # For now, speed is always constant
 SPEED = 30
 # Bias on pursuing over avoiding for the agent's movement
-BIAS = 0.3
+BIAS = 0.8
 
 # Auxiliar function for calculating the distance between two points
 def dist(p1, p2):
@@ -123,15 +123,17 @@ def main():
         agent.track_attention([attention_agent, attention_prey, attention_predator])
         
         # Move Prey and Predator
-        prey.avoid(agent.perceive(100), SPEED) # Prey avoids agent
-        predator.pursue(agent.perceive(100), SPEED) # Predator pursues agent
+        prey.avoid(agent.perceive(100), agent.loc, SPEED) # Prey avoids agent
+        predator.pursue(agent.perceive(100), agent.loc, SPEED) # Predator pursues agent
 
         # Move Agent
-        agent.move(agent.perceive(attention_agent), prey.perceive(attention_prey), predator.perceive(attention_predator), SPEED, BIAS)
-
-        # Check the error between moving with attention versus with full attention
-        agent.move_with_full_attention(agent.perceive(100), prey.perceive(100), predator.perceive(100), SPEED, BIAS)
-
+        agent.move(agent.perceive(attention_agent),
+                    prey.perceive(attention_prey),
+                    predator.perceive(attention_predator),
+                    prey.loc,
+                    predator.loc,
+                    SPEED,
+                    BIAS)
 
         # Keep track of distances
         agent.track_dist([dist(prey.loc, agent.loc), dist(predator.loc, agent.loc)])
