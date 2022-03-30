@@ -1,10 +1,11 @@
-from random import randrange, randint
+from random import randrange, randint, seed
 import numpy as np
 
 # Class for the Predator in the predator-prey model
 class Predator:
 
     def __init__(self, w, h):
+        seed(2)
         self.loc = [randint(int(2*w/3), w), randint(0, h)]
         # Flag that is set to True if the character reached its prey
         self.feasted = False
@@ -23,42 +24,30 @@ class Predator:
         return (x, y)
 
     # Pursues the agent at the given perceived location
-    def pursue(self, perceived_loc, speed):
-        # Vector between the two points
-        v = np.linalg.norm(np.array(self.loc)-np.array(perceived_loc))
+    def pursue(self, prey_perceived, prey_real, speed):
+        buffer = 10 # If the distance between prey and predator is less than 10 it counts as a contact
+        pred_v = np.array(self.loc) # Vector for the predator's location
+        prey_real_v = np.array(prey_real) # Vector for the prey's real location
+        prey_perceived_v = np.array(prey_perceived) # Vector for the prey's perceived location
+        move_v = prey_perceived_v - pred_v
+        perceived_dist = np.linalg.norm(move_v)
 
         # Move predator alongside this vector at a given speed
-        d = speed / (np.sqrt(np.sum(np.square(v))))
-        new_loc = np.array(self.loc) + d * v
+        d = speed / perceived_dist
+        if d > 1:
+            d = 1
+        new_loc = np.floor((pred_v + d * move_v))
 
         # Update location
         self.loc = new_loc
 
-        # If the character has reached its target, set feasted to True
-        if perceived_loc[0] == self.loc[0] and perceived_loc[1] == self.loc[1]:
+        real_dist = np.linalg.norm(prey_real_v - np.array(self.loc))
+        # If the prey has been caught, set feasted to True
+        if real_dist < buffer:
             self.feasted = True
-        
-        # If the new location is out of range, bounce back
-        self.bounce_back()
 
         # Update trace
         self.trace.append(list(self.loc))
-        return
-    
-    # If the location is out of range, bounces it back into the range
-    def bounce_back(self):
-        # Fix x-coordinate, if needed
-        if self.loc[0] < 0:
-            self.loc[0] = self.loc[0] + abs(self.loc[0]) + 10
-        elif self.loc[0] > self.w:
-            self.loc[0] = self.loc[0] - (self.loc[0] - self.w) - 10
-        
-        # Fix y-coordinate, if needed
-        if self.loc[1] < 0:
-            self.loc[1] = self.loc[1] + abs(self.loc[1]) + 10
-        elif self.loc[1] > self.h:
-            self.loc[1] = self.loc[1] - (self.loc[1] - self.h) - 10
-        
         return
     
     # Displays information about the character
@@ -67,7 +56,9 @@ class Predator:
         display.append('Did it reach the target? ' + str(self.feasted))
         display.append('Number of steps taken: ' + str(len(self.trace)))
         display.append('Location trace:')
+        trace_str = ""
         for loc in self.trace:
-            display.append(str(loc))
+            trace_str += ", " + str(loc)
+        display.append(trace_str)
         display.append('===============================\n')
         return "\n".join(display)
