@@ -11,6 +11,7 @@ from dwave.system import LeapHybridCQMSampler
 
 # Define CQM
 cqm = ConstrainedQuadraticModel()
+
 # Objective function: minimize cost of allocated attention
 allocation_cost = # cost function (writing it in terms of reward - cost might make it easier/more intuitive)
 
