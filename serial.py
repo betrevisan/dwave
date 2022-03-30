@@ -137,8 +137,8 @@ def main():
         agent.track_dist([dist(prey.loc, agent.loc), dist(predator.loc, agent.loc)])
     
     print(agent)
-    # print(prey)
-    # print(predator)
+    print(prey)
+    print(predator)
 
     return agent.attention_trace
 
