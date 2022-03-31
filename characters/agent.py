@@ -22,6 +22,12 @@ class Agent:
         self.h = h
         # Error metrics
         self.movement_error = []
+        # Perceived location of Agent
+        self.perceived_agent_trace = []
+        # Perceived location of Prey
+        self.perceived_prey_trace = []
+        # Perceived location of Predator
+        self.perceived_predator_trace = []
         return
     
     # Get this agent's location given the attention level
@@ -41,6 +47,10 @@ class Agent:
         prey_perceived_v = np.array(prey_perceived) # Vector for the prey's perceived location
         pred_real_v = np.array(predator_real) # Vector for the predator's real location
         pred_perceived_v = np.array(predator_perceived) # Vector for the predator's perceived location
+
+        self.perceived_agent_trace.append(list(agent_perceived))
+        self.perceived_prey_trace.append(list(prey_perceived))
+        self.perceived_predator_trace.append(list(predator_perceived))
 
         real_dist_to_pred = np.linalg.norm(pred_real_v - agent_real_v)
         # If the agent has been caught, set alive to False
@@ -112,6 +122,21 @@ class Agent:
         for loc in self.trace:
             trace_str += ", " + str(loc)
         display.append(trace_str)
+        display.append('Agent perceived location trace:')
+        agent_str = ""
+        for loc in self.perceived_agent_trace:
+            agent_str += ", " + str(loc)
+        display.append(agent_str)
+        display.append('Prey perceived location trace:')
+        prey_str = ""
+        for loc in self.perceived_prey_trace:
+            prey_str += ", " + str(loc)
+        display.append(prey_str)
+        display.append('Predator perceived location trace:')
+        predator_str = ""
+        for loc in self.perceived_predator_trace:
+            predator_str += ", " + str(loc)
+        display.append(predator_str)
         display.append('Attention trace (agent, prey, predator):')
         for attn in self.attention_trace:
             display.append(str(attn))

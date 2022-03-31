@@ -100,6 +100,9 @@ def main():
     # Initialize the attention allocation model
     attention_model = AttentionModel()
 
+    # Initialize the movement model
+    # movement_model = MovementModel()
+
     # Run model for n iterations
     for _ in range(ITERATIONS):
 
@@ -123,6 +126,9 @@ def main():
         # Move Prey and Predator
         prey.avoid(agent.perceive(100), agent.loc, SPEED) # Prey avoids agent
         predator.pursue(agent.perceive(100), agent.loc, SPEED) # Predator pursues agent
+
+        # Use the quantum model for the agent's movement
+        # call the movement model
 
         # Move Agent
         agent.move(agent.perceive(attention_agent),
