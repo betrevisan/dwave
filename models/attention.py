@@ -45,6 +45,7 @@ class AttentionModel:
         name : str, optional
             The name of the model (default is "AttentionModel")
         """
+
         self.w = w
         self.h = h
         self.max_dist = sqrt(w**2 + h**2)
@@ -73,7 +74,6 @@ class AttentionModel:
         if dist is None or dist < 0:
             raise ValueError("dist must be a non-zero number")
 
-        # Ratio between distance and maximum possible distance
         d = dist/self.max_dist
 
         # Attention level dependent on cost
@@ -132,10 +132,10 @@ class AttentionModel:
         # Get the QUBO formulation for the given distance
         Q = self.qubo(dist)
 
-        # Run sampler
+        # Define sampler
         sampler = EmbeddingComposite(DWaveSampler())
         
-        # Retrieve output
+        # Run sampler
         sampler_output = sampler.sample_qubo(Q, num_reads = self.num_reads)
 
         # Get the attention
