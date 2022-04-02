@@ -183,13 +183,13 @@ class AttentionModel:
 
         # Agent's attention level using the average between its distance to the
         # prey and its distance to the predator.
-        attn_agent = self.alloc_attention(avg_dist)
+        attn_agent = self.alloc_attn(avg_dist)
 
         # Prey's attention level using its distance to the agent.
-        attn_prey = self.alloc_attention(dist2prey) 
+        attn_prey = self.alloc_attn(dist2prey) 
 
         # Predator's attention level using its distance to the agent.
-        attn_predator = self.alloc_attention(dist2predator)
+        attn_predator = self.alloc_attn(dist2predator)
 
         # Normalize attention levels so that they don't exceed 100
         total_attn = attn_agent + attn_prey + attn_predator
