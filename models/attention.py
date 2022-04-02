@@ -11,6 +11,10 @@ HEIGHT = 500
 # Maximum distance between two points in the plane
 MAX_DIST = sqrt(WIDTH**2 + HEIGHT**2)
 
+# Auxiliar function for calculating the distance between two points
+def dist(p1, p2):
+    return sqrt((p2[0] - p1[0])**2 + (p2[1] - p1[1])**2)
+
 class AttentionModel:
 
     def __init__(self):
@@ -52,7 +56,7 @@ class AttentionModel:
 
         return Q_complete
     
-    # Allocates to a character given the distance to their target
+    # Allocates attention to a character given the distance to their target
     def alloc_attention(self, dist):
         # Get the QUBO formulation for the given distance
         Q = self.QUBO(dist)
@@ -76,4 +80,22 @@ class AttentionModel:
 
         return attention
     
-    #def get_attention_levels(self):
+    # Gets the attention levels for the agent, prey, and predator
+    def get_attention_levels(self, model, agent, prey, predator):
+        # Agent's attention level using the average between its distance to the prey and its distance to the predator
+        attention_agent = model.alloc_attention((dist(agent.loc, prey.loc) + dist(agent.loc, predator.loc))/2)
+        # Prey's attention level using its distance to the agent
+        attention_prey = model.alloc_attention(dist(prey.loc, agent.loc)) 
+        # Predator's attention level using its distance to the agent
+        attention_predator = model.alloc_attention(dist(predator.loc, agent.loc))
+
+        # Normalize attention levels so that they don't exceed 100
+        total_attention = attention_prey + attention_agent + attention_predator
+        attention_agent = attention_agent/total_attention * 100
+        attention_prey = attention_prey/total_attention * 100
+        attention_predator = attention_predator/total_attention * 100
+
+        # Keep track of attention levels
+        agent.track_attention([attention_agent, attention_prey, attention_predator])
+
+        return attention_agent, attention_prey, attention_predator

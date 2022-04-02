@@ -7,7 +7,7 @@ from characters import predator as predator_mod
 from characters import prey as prey_mod
 
 # Number of iterations in the game
-ITERATIONS = 20
+ITERATIONS = 5
 # Width and height of the game's coordinate plane
 WIDTH = 500
 HEIGHT = 500
@@ -35,22 +35,10 @@ def main():
     # Run model for n iterations
     for _ in range(ITERATIONS):
 
-        # Get the attention levels for all three characters
-        # Prey's attention level using its distance to the agent
-        attention_prey = attention_model.alloc_attention(dist(prey.loc, agent.loc)) 
-        # Agent's attention level using the average between its distance to the prey and its distance to the predator
-        attention_agent = attention_model.alloc_attention((dist(agent.loc, prey.loc) + dist(agent.loc, predator.loc))/2)
-        # Predator's attention level using its distance to the agent
-        attention_predator = attention_model.alloc_attention(dist(predator.loc, agent.loc))
-
-        # Normalize attention levels so that they don't exceed 100
-        total_attention = attention_prey + attention_agent + attention_predator
-        attention_prey = attention_prey/total_attention * 100
-        attention_agent = attention_agent/total_attention * 100
-        attention_predator = attention_predator/total_attention * 100
-
-        # Keep track of attention levels
-        agent.track_attention([attention_agent, attention_prey, attention_predator])
+        attn_agent, attn_prey, attn_pred = attention_model.get_attention_levels(attention_model,
+                                                                                agent,
+                                                                                prey,
+                                                                                predator)
         
         # Move Prey and Predator
         prey.avoid(agent.perceive(100), agent.loc, SPEED) # Prey avoids agent
@@ -60,9 +48,9 @@ def main():
         # call the movement model
 
         # Move Agent
-        agent.move(agent.perceive(attention_agent),
-                    prey.perceive(attention_prey),
-                    predator.perceive(attention_predator),
+        agent.move(agent.perceive(attn_agent),
+                    prey.perceive(attn_prey),
+                    predator.perceive(attn_pred),
                     prey.loc,
                     predator.loc,
                     SPEED,
