@@ -128,8 +128,7 @@ class Agent:
         ValueError
             If given arguments are invalid.
         """
-        if agent_perceived is None or prey_perceived is None or predator_perceived is None or
-            prey_real is None or predator_real is None:
+        if agent_perceived is None or prey_perceived is None or predator_perceived is None or prey_real is None or predator_real is None:
             raise ValueError("locations must all be valid")
 
         if speed <= 0:
@@ -195,10 +194,19 @@ class Agent:
         self.loc_trace.append(list(self.loc))
 
         # Keep track of distances
-        self.track_dist([math.dist(prey.loc, agent.loc), math.dist(predator.loc, agent.loc)])
+        self.track_dist([math.dist(prey_real, self.loc), math.dist(predator_real, self.loc)])
 
-    # If the location is out of range, bounces it back into range
     def bounce_back(self):
+        """If the location is out of range, bounces it back into range
+
+        Parameters
+        ----------
+        void
+
+        Returns
+        -------
+        void
+        """
         # Fix x-coordinate, if needed
         if self.loc[0] < 0:
             self.loc[0] = 1
@@ -211,49 +219,91 @@ class Agent:
         elif self.loc[1] > self.h:
             self.loc[1] = self.h - 1
         
-        return
-
-    # Add attentions to the attention_trace
     def track_attn(self, attention):
-        self.attention_trace.append(attention)
-        return
+        """Add attentions to the attention_trace
 
-    # Add distance to the dist_trace
+        Parameters
+        ----------
+        attention : [float]
+            Set of attention levels to be be added to the attention trace
+
+        Returns
+        -------
+        void
+        """
+        self.attn_trace.append(attention)
+
     def track_dist(self, dist):
-        self.dist_trace.append(dist)
-        return
+        """ Add distances to the dist_trace
 
-    # Displays information about the character
+        Parameters
+        ----------
+        dist : [float]
+            Set of distances to be be added to the distance trace
+
+        Returns
+        -------
+        void
+        """
+        self.dist_trace.append(dist)
+
     def __repr__(self):
-        display = ['\n======<AGENT>======']
-        display.append('Is alive? ' + str(self.alive))
-        display.append('Did it reach the target? ' + str(self.feasted))
-        display.append('Number of steps taken: ' + str(len(self.trace)))
+        """Displays information about the agent
+        """
+        display = ['\n===============================']
+        display.append('A G E N T')
+        display.append('Alive: ' + str(self.alive))
+        display.append('Feasted: ' + str(self.feasted))
+        display.append('Steps taken: ' + str(len(self.loc_trace)))
+
         display.append('Location trace:')
-        trace_str = ""
-        for loc in self.trace:
-            trace_str += ", " + str(loc)
-        display.append(trace_str)
+        loc_trace_str = ""
+        for loc in self.loc_trace:
+            loc[0] = "{:.2f}".format(loc[0])
+            loc[1] = "{:.2f}".format(loc[1])
+            loc_trace_str += ", " + str(loc)
+        display.append(loc_trace_str)
+
         display.append('Agent perceived location trace:')
         agent_str = ""
         for loc in self.perceived_agent_trace:
+            loc[0] = "{:.2f}".format(loc[0])
+            loc[1] = "{:.2f}".format(loc[1])
             agent_str += ", " + str(loc)
         display.append(agent_str)
+
         display.append('Prey perceived location trace:')
         prey_str = ""
         for loc in self.perceived_prey_trace:
+            loc[0] = "{:.2f}".format(loc[0])
+            loc[1] = "{:.2f}".format(loc[1])
             prey_str += ", " + str(loc)
         display.append(prey_str)
+
         display.append('Predator perceived location trace:')
         predator_str = ""
         for loc in self.perceived_predator_trace:
+            loc[0] = "{:.2f}".format(loc[0])
+            loc[1] = "{:.2f}".format(loc[1])
             predator_str += ", " + str(loc)
         display.append(predator_str)
+
         display.append('Attention trace (agent, prey, predator):')
-        for attn in self.attention_trace:
-            display.append(str(attn))
+        attn_trace_str = ""
+        for attn in self.attn_trace:
+            attn[0] = "{:.2f}".format(attn[0])
+            attn[1] = "{:.2f}".format(attn[1])
+            attn[2] = "{:.2f}".format(attn[2])
+            attn_trace_str += ", " + str(attn)
+        display.append(attn_trace_str)
+
         display.append('Distances trace (dist to prey, dist to predator):')
+        dist_trace_str = ""
         for dist in self.dist_trace:
-            display.append(str(dist))
+            dist[0] = "{:.2f}".format(dist[0])
+            dist[1] = "{:.2f}".format(dist[1])
+            dist_trace_str += ", " + str(dist)
+        display.append(dist_trace_str)
+
         display.append('===============================\n')
         return "\n".join(display)

@@ -130,13 +130,15 @@ class Prey:
     def __repr__(self):
         """Displays information about the prey
         """
-        display.append('\n===============================')
-        display = ['P R E Y']
+        display = ['\n===============================']
+        display.append('P R E Y')
         display.append('Alive: ' + str(self.alive))
         display.append('Steps taken: ' + str(len(self.loc_trace)))
         display.append('Location trace:')
         loc_trace_str = ""
         for loc in self.loc_trace:
+            loc[0] = "{:.2f}".format(loc[0])
+            loc[1] = "{:.2f}".format(loc[1])
             loc_trace_str += ", " + str(loc)
         display.append(loc_trace_str)
         display.append('===============================\n')

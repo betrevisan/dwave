@@ -12,7 +12,7 @@ from characters import predator as predator_mod
 from characters import prey as prey_mod
 
 # Number of iterations in the game
-ITERATIONS = 5
+ITERATIONS = 1
 # Number of reads in the annealer
 NUM_READS = 5
 # Width and height of the game's coordinate plane
@@ -62,7 +62,7 @@ def main():
     print(prey)
     print(predator)
 
-    return agent.attention_trace
+    return agent.attn_trace
 
 if __name__ == "__main__":
     main()
