@@ -27,7 +27,7 @@ def main():
     predator = predator_mod.Predator(WIDTH, HEIGHT)
 
     # Initialize the attention allocation model
-    attention_model = attention_mod.AttentionModel()
+    attention_model = attention_mod.AttentionModel(WIDTH, HEIGHT, 5)
 
     # Initialize the movement model
     # movement_model = MovementModel()
@@ -35,8 +35,7 @@ def main():
     # Run model for n iterations
     for _ in range(ITERATIONS):
 
-        attn_agent, attn_prey, attn_pred = attention_model.get_attention_levels(attention_model,
-                                                                                agent,
+        attn_agent, attn_prey, attn_pred = attention_model.get_attention_levels(agent,
                                                                                 prey,
                                                                                 predator)
         

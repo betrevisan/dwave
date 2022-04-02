@@ -1,29 +1,80 @@
-# Attention allocation model
-
+import math
 from numpy import sqrt
 from dwave.system import EmbeddingComposite, DWaveSampler
 
-# Number of reads in the annealer
-NUM_READS = 5
-# Width and height of the game's coordinate plane
-WIDTH = 500
-HEIGHT = 500
-# Maximum distance between two points in the plane
-MAX_DIST = sqrt(WIDTH**2 + HEIGHT**2)
-
-# Auxiliar function for calculating the distance between two points
-def dist(p1, p2):
-    return sqrt((p2[0] - p1[0])**2 + (p2[1] - p1[1])**2)
-
 class AttentionModel:
+    """
+    The AttentionModel class represents the quantum model for attention alloc.
 
-    def __init__(self):
+    ...
+
+    Attributes
+    ----------
+    w : int
+        Width of the coordinate plane
+    h : int
+        Height of the coordinate plane
+    max_dist : int
+        Maximum possible distance in the coordinate plane
+    num_reads : int
+        Number of reads in the annealer
+    name : str, optional
+        The name of the model
+    
+
+    Methods
+    -------
+    qubo(dist)
+        Updates the QUBO formulation given a distance.
+    alloc_attn(dist)
+        Allocates attention an attention level given a distance.
+    get_attn_levels(model, agent, prey, predator)
+        Gets the attention level for the agent, the prey, and the predator.
+    """
+
+    def __init__(self, w, h, num_reads, name="AttentionModel"):
+        """
+        Parameters
+        ----------
+        w : int
+            Width of the coordinate plane
+        h : int
+            Height of the coordinate plane
+        num_reads : int
+            Number of reads in the annealer
+        name : str, optional
+            The name of the model (default is "AttentionModel")
+        """
+        self.w = w
+        self.h = h
+        self.max_dist = sqrt(w**2 + h**2)
+        self.num_reads = num_reads
         self.name = "AttentionModel"
     
-    # Updates the QUBO given the distance to the target
-    def QUBO(self, dist):
+    def qubo(self, dist):
+        """Updates the QUBO given the distance to the target
+
+        Parameters
+        ----------
+        dist : int
+            The distance that will guide the QUBO formulation.
+
+        Returns
+        -------
+        dict
+            A dict with with the updated QUBO formulation.
+
+        Raises
+        ------
+        ValueError
+            If no distance or a negative distance are passed.
+        """
+        
+        if dist is None or dist < 0:
+            raise ValueError("dist must be a non-zero number")
+
         # Ratio between distance and maximum possible distance
-        d = dist/MAX_DIST
+        d = dist/self.max_dist
 
         # Attention level dependent on cost
         Q_cost = {('25','25'): -(1 - 0.25),
@@ -56,46 +107,97 @@ class AttentionModel:
 
         return Q_complete
     
-    # Allocates attention to a character given the distance to their target
-    def alloc_attention(self, dist):
+    def alloc_attn(self, dist):
+        """Allocates attention to a character given the distance to their target
+
+        Parameters
+        ----------
+        dist : int
+            The distance that will guide the QUBO formulation.
+
+        Returns
+        -------
+        int
+            The allocated attention level.
+
+        Raises
+        ------
+        ValueError
+            If no distance or a negative distance are passed.
+        """
+
+        if dist is None or dist < 0:
+            raise ValueError("dist must be a non-zero number")
+
         # Get the QUBO formulation for the given distance
-        Q = self.QUBO(dist)
+        Q = self.qubo(dist)
 
         # Run sampler
         sampler = EmbeddingComposite(DWaveSampler())
         
         # Retrieve output
-        sampler_output = sampler.sample_qubo(Q, num_reads = NUM_READS)
+        sampler_output = sampler.sample_qubo(Q, num_reads = self.num_reads)
 
         # Get the attention
-        attention = sampler_output.record.sample[0]
-        if attention[0] == 1:
-            attention = 100
-        elif attention[1] == 1:
-            attention = 25
-        elif attention[2] == 1:
-            attention = 50
+        attn = sampler_output.record.sample[0]
+        if attn[0] == 1:
+            attn = 100
+        elif attn[1] == 1:
+            attn = 25
+        elif attn[2] == 1:
+            attn = 50
         else:
-            attention = 75
+            attn = 75
 
-        return attention
+        return attn
     
-    # Gets the attention levels for the agent, prey, and predator
-    def get_attention_levels(self, model, agent, prey, predator):
-        # Agent's attention level using the average between its distance to the prey and its distance to the predator
-        attention_agent = model.alloc_attention((dist(agent.loc, prey.loc) + dist(agent.loc, predator.loc))/2)
-        # Prey's attention level using its distance to the agent
-        attention_prey = model.alloc_attention(dist(prey.loc, agent.loc)) 
-        # Predator's attention level using its distance to the agent
-        attention_predator = model.alloc_attention(dist(predator.loc, agent.loc))
+    def get_attention_levels(self, agent, prey, predator):
+        """Gets the attention level for the agent, the prey, and the predator
+
+        Parameters
+        ----------
+        agent : Agent
+            Agent in the predator-prey environment.
+        prey : Prey
+            Prey in the predator-prey environment.
+        predator : Predator
+            Predator in the predator-prey environment.
+
+        Returns
+        -------
+        [int]
+            The three allocated attention levels (agent, prey, and predator).
+
+        Raises
+        ------
+        ValueError
+            If characters are not passed.
+        """
+
+        if agent is None or prey is None or predator is None:
+            raise ValueError("all character must be passed to the function")
+
+        dist2prey = math.dist(agent.loc, prey.loc)
+        dist2predator = math.dist(agent.loc, predator.loc)
+        avg_dist = (dist2prey + dist2predator)/2
+
+        # Agent's attention level using the average between its distance to the
+        # prey and its distance to the predator.
+        attn_agent = self.alloc_attention(avg_dist)
+
+        # Prey's attention level using its distance to the agent.
+        attn_prey = self.alloc_attention(dist2prey) 
+
+        # Predator's attention level using its distance to the agent.
+        attn_predator = self.alloc_attention(dist2predator)
 
         # Normalize attention levels so that they don't exceed 100
-        total_attention = attention_prey + attention_agent + attention_predator
-        attention_agent = attention_agent/total_attention * 100
-        attention_prey = attention_prey/total_attention * 100
-        attention_predator = attention_predator/total_attention * 100
+        total_attn = attn_agent + attn_prey + attn_predator
+        attn_agent = attn_agent/total_attn * 100
+        attn_prey = attn_prey/total_attn * 100
+        attn_predator = attn_predator/total_attn * 100
 
         # Keep track of attention levels
-        agent.track_attention([attention_agent, attention_prey, attention_predator])
+        agent.track_attention([attn_agent, attn_prey, attn_predator])
 
-        return attention_agent, attention_prey, attention_predator
+        return [attn_agent, attn_prey, attn_predator]
