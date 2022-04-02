@@ -14,13 +14,12 @@ class AttentionModel:
         Width of the coordinate plane
     h : int
         Height of the coordinate plane
-    max_dist : int
+    max_dist : float
         Maximum possible distance in the coordinate plane
     num_reads : int
         Number of reads in the annealer
     name : str, optional
         The name of the model
-    
 
     Methods
     -------
@@ -57,7 +56,7 @@ class AttentionModel:
 
         Parameters
         ----------
-        dist : int
+        dist : float
             The distance that will guide the QUBO formulation.
 
         Returns
@@ -112,12 +111,12 @@ class AttentionModel:
 
         Parameters
         ----------
-        dist : int
+        dist : float
             The distance that will guide the QUBO formulation.
 
         Returns
         -------
-        int
+        float
             The allocated attention level.
 
         Raises
@@ -165,7 +164,7 @@ class AttentionModel:
 
         Returns
         -------
-        [int]
+        [float]
             The three allocated attention levels (agent, prey, and predator).
 
         Raises

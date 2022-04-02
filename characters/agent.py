@@ -1,5 +1,6 @@
 from random import randrange, randint, seed
 import numpy as np
+import math
 
 # Class for the Agent in the predator-prey model
 class Agent:
@@ -30,11 +31,11 @@ class Agent:
         self.perceived_predator_trace = []
         return
     
-    # Get this agent's location given the attention level
-    def perceive(self, attention):
+    # Get the target's location given the attention level
+    def perceive(self, target, attention):
         blur = 100 - attention
-        x = self.loc[0] + blur
-        y = self.loc[1] + blur
+        x = target.loc[0] + blur
+        y = target.loc[1] + blur
         return (x, y)
 
     # Move the agent given perceived locations
@@ -83,6 +84,9 @@ class Agent:
 
         # Update trace
         self.trace.append(list(self.loc))
+
+        # Keep track of distances
+        self.track_dist([math.dist(prey.loc, agent.loc), math.dist(predator.loc, agent.loc)])
         return
 
     # If the location is out of range, bounces it back into the range
