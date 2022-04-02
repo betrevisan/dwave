@@ -197,6 +197,6 @@ class AttentionModel:
         attn_predator = attn_predator/total_attn * 100
 
         # Keep track of attention levels
-        agent.track_attention([attn_agent, attn_prey, attn_predator])
+        agent.track_attn([attn_agent, attn_prey, attn_predator])
 
         return [attn_agent, attn_prey, attn_predator]
