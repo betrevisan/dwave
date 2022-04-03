@@ -25,9 +25,9 @@ class MovementModel:
     -------
     qubo(dist2prey, dist2pred)
         Updates the QUBO formulation given distance to the prey and to the predator.
-    decide_movement(agent, prey, predator)
-        Decide on the direction of movement given the three characters.
-    move(agent, prey, predator)
+    decide_movement(agent, agent_perceived, prey_perceived, predator_perceived, speed)
+        Decide on the direction of movement given perceived locations and movement.
+    move(agent, agent_perceived, prey_perceived, predator_perceived, prey_real, predator_real, speed)
         Moves the agent into the direction decided by the quantum model.
     """
 
@@ -52,6 +52,21 @@ class MovementModel:
         self.name = name
 
     def qubo(self, dist2prey, dist2predator):
+        """Updates the QUBO given the distance to the target
+
+        Parameters
+        ----------
+        dist2prey : [float]
+            The array of distances between the prey and each of the possible directions.
+        dist2predator : [float]
+            The array of distances between the predator and each of the possible directions.
+
+        Returns
+        -------
+        dict
+            A dict with with the updated QUBO formulation.
+        """
+
         # Build the QUBO on the prey's perceived location
         Q_prey = {}
         max_dist_prey = max(dist2prey)
@@ -78,6 +93,23 @@ class MovementModel:
         return Q_complete
 
     def decide_movement(self, agent, agent_perceived, prey_perceived, predator_perceived, speed):
+        """Decide on the direction of movement given perceived locations and movement
+
+        Parameters
+        ----------
+        dist : float
+            The distance that will guide the QUBO formulation.
+
+        Returns
+        -------
+        float
+            The allocated attention level.
+
+        Raises
+        ------
+        ValueError
+            If no distance or a negative distance are passed.
+        """
         # Calculate the possible directions of movement
         center = agent_perceived
         radius = speed

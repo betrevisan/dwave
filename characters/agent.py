@@ -198,6 +198,42 @@ class Agent:
 
     def move_quantum(self, agent_perceived, prey_perceived, predator_perceived,
                 prey_real, predator_real, speed, target):
+        """Move the agent using the perceived locations, speed of movement, and the target
+        direction. Used in the quantum model.
+
+        Parameters
+        ----------
+        agent_perceived : [float]
+            The agent's perceived location [x, y]
+        prey_perceived : [float]
+            The prey's perceived location [x, y]
+        predator_perceived : [float]
+            The predator's perceived location [x, y]
+        prey_real : [float]
+            The prey's real location [x, y]
+        predator_real : [float]
+            The predator's real location [x, y]
+        speed : float
+            The speed of movement
+        target : [float]
+            The target position that guides the direction of movement
+
+        Returns
+        -------
+        void
+
+        Raises
+        ------
+        ValueError
+            If given arguments are invalid.
+        """
+
+        if agent_perceived is None or prey_perceived is None or predator_perceived is None or prey_real is None or predator_real is None or target is None:
+            raise ValueError("locations must all be valid")
+
+        if speed <= 0:
+            raise ValueError("speed must be positive number")
+
         # Track perceived locations
         self.perceived_agent_trace.append(list(agent_perceived))
         self.perceived_prey_trace.append(list(prey_perceived))
