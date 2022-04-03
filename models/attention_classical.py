@@ -1,13 +1,71 @@
-# Class for the attention allocation model
+import math
+from numpy import sqrt
+
 class AttentionModelClassical:
+    """
+    The class AttentionModelClassical class represents the classical model for attention alloc.
 
-    def __init__(self):
-        self.name = "AttentionModelClassical"
+    ...
 
-    # Allocates to a character given the distance to their target
+    Attributes
+    ----------
+    w : int
+        Width of the coordinate plane
+    h : int
+        Height of the coordinate plane
+    max_dist : float
+        Maximum possible distance in the coordinate plane
+    name : str, optional
+        The name of the model
+
+    Methods
+    -------
+    alloc_attn(dist)
+        Allocates attention an attention level given a distance.
+    get_attn_levels(model, agent, prey, predator)
+        Gets the attention level for the agent, the prey, and the predator.
+    """
+
+    def __init__(self, w, h, name="AttentionModelClassical"):
+        """
+        Parameters
+        ----------
+        w : int
+            Width of the coordinate plane
+        h : int
+            Height of the coordinate plane
+        name : str, optional
+            The name of the model (default is "AttentionModelClassical")
+        """
+
+        self.w = w
+        self.h = h
+        self.max_dist = math.sqrt(w**2 + h**2)
+        self.name = name
+
     def alloc_attn(self, dist):
-        # Ratio between distance and maximum possible distance
-        d = dist/MAX_DIST
+        """Allocates attention to a character given the distance to their target
+
+        Parameters
+        ----------
+        dist : float
+            The distance that will guide the allocation.
+
+        Returns
+        -------
+        float
+            The allocated attention level.
+
+        Raises
+        ------
+        ValueError
+            If no distance or a negative distance are passed.
+        """
+
+        if dist is None or dist < 0:
+            raise ValueError("dist must be a non-zero number")
+        
+        d = dist/self.max_dist
 
         attention_levels = [25, 50, 75, 100]
 

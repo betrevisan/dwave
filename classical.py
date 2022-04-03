@@ -28,7 +28,7 @@ def main():
     predator = predator_mod.Predator(WIDTH, HEIGHT)
 
     # Initialize the attention allocation model
-    attention_model = attention_mod.AttentionModelClassical()
+    attention_model = attention_mod.AttentionModelClassical(WIDTH, HEIGHT)
 
     # Run model for n iterations
     for _ in range(ITERATIONS):
