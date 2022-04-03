@@ -137,6 +137,9 @@ class AttentionModel:
         # Run sampler
         sampler_output = sampler.sample_qubo(Q, num_reads = self.num_reads)
 
+        # Time statistics in microseconds
+        print(sampler_output.info["timing"])
+
         # Get the attention
         attn = sampler_output.record.sample[0]
         if attn[0] == 1:
