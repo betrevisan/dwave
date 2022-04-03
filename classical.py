@@ -7,6 +7,7 @@ and decide on optimal movement direction).
 
 import math
 import time
+from metrics import metrics as metrics_mod
 from models import attention_classical as attention_mod
 from characters import agent as agent_mod
 from characters import predator as predator_mod
@@ -23,6 +24,9 @@ SPEED = 30
 BIAS = 0.8
         
 def main():
+    # Initialize metrics instance
+    metrics = metrics_mod.Metrics("Serial Classical Implementation")
+
     # Compute time stats
     start_time = time.time()
 
@@ -37,9 +41,11 @@ def main():
     # Run model for n iterations
     for _ in range(ITERATIONS):
 
+        start_attn_time = time.time()
         attn_agent, attn_prey, attn_predator = attention_model.get_attention_levels(agent,
                                                                                     prey,
                                                                                     predator)
+        metrics.attention_time += (time.time() - start_attn_time) * 1000000
 
         # Prey avoids agent
         prey.avoid(agent.loc, SPEED)
@@ -52,17 +58,34 @@ def main():
         predator_perceived = agent.perceive(predator, attn_predator)
 
         # Move Agent
+        start_movement_time = time.time()
         agent.move(agent_perceived, prey_perceived, predator_perceived, prey.loc, predator.loc, SPEED, BIAS)
-    
-    print(agent)
-    # print(prey)
-    # print(predator)
+        metrics.movement_time += (time.time() - start_movement_time) * 1000000 
 
-    # Print compute time (in microseconds)
-    end_time = time.time()
-    print("Compute time for the classical version: " +  str((end_time - start_time) * 1000000))
+    # Add agent to metrics
+    metrics.agent_alive = agent.alive
+    metrics.agent_feasted = agent.feasted
+    metrics.agent_loc_trace = agent.loc_trace
+    metrics.dist_agent2prey_trace = [dist[0] for dist in agent.dist_trace]
+    metrics.dist_agent2predator_trace = [dist[1] for dist in agent.dist_trace]
 
-    return agent.attn_trace
+    # Add prey to metrics
+    metrics.prey_alive = prey.alive
+    metrics.prey_loc_trace = prey.loc_trace
+
+    # Add predator to metrics
+    metrics.predator_feasted = predator.feasted
+    metrics.predator_loc_trace = predator.loc_trace
+
+    # Add attention trace to metrics
+    metrics.attention_trace = agent.attn_trace
+
+    # Add total time to metrics
+    metrics.total_time = (time.time() - start_time) * 1000000
+
+    print(metrics)
+
+    return
 
 if __name__ == "__main__":
     main()

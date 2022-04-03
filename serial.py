@@ -6,6 +6,7 @@ and decide on optimal movement direction).
 """
 
 import math
+from metrics import metrics as metrics_mod
 from models import attention as attention_mod
 from models import movement as movement_mod
 from characters import agent as agent_mod
@@ -25,6 +26,9 @@ SPEED = 30
 BIAS = 0.8
 
 def main():
+    # Initialize metrics instance
+    metrics = metrics_mod.Metrics("Serial Quantum Implementation")
+
     # Initialize characters
     agent = agent_mod.Agent(WIDTH, HEIGHT)
     prey = prey_mod.Prey(WIDTH, HEIGHT)
@@ -61,13 +65,30 @@ def main():
         # Move Agent
         # agent.move(agent_perceived, prey_perceived, predator_perceived, prey.loc, predator.loc, SPEED, BIAS)
 
-    print(agent)
-    print(prey)
-    print(predator)
+    # Add agent to metrics
+    metrics.agent_alive = agent.alive
+    metrics.agent_feasted = agent.feasted
+    metrics.agent_loc_trace = agent.loc_trace
+    metrics.dist_agent2prey_trace = [dist[0] for dist in agent.dist_trace]
+    metrics.dist_agent2predator_trace = [dist[1] for dist in agent.dist_trace]
 
-    print("Attention model total sampling time: " + str(attention_model.total_time))
-    print("Movement model total sampling time: " + str(movement_model.total_time))
-    print("Quantum model total sampling time: " + str(attention_model.total_time + movement_model.total_time))
+    # Add prey to metrics
+    metrics.prey_alive = prey.alive
+    metrics.prey_loc_trace = prey.loc_trace
+
+    # Add predator to metrics
+    metrics.predator_feasted = predator.feasted
+    metrics.predator_loc_trace = predator.loc_trace
+
+    # Add attention trace to metrics
+    metrics.attention_trace = agent.attn_trace
+
+    # Add time to metrics
+    metrics.attention_time = attention_model.total_time
+    metrics.movement_time = movement_model.total_time
+    metrics.total_time = attention_model.total_time + movement_model.total_time
+
+    print(metrics)
 
     return agent.attn_trace
 

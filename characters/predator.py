@@ -101,19 +101,3 @@ class Predator:
         self.loc_trace.append(list(self.loc))
         return
     
-    def __repr__(self):
-        """Displays information about the predator
-        """
-        display = ['\n===============================']
-        display.append('P R E D A T O R')
-        display.append('Feasted: ' + str(self.feasted))
-        display.append('Steps taken: ' + str(len(self.loc_trace)))
-        display.append('Location trace:')
-        loc_trace_str = ""
-        for loc in self.loc_trace:
-            loc[0] = "{:.2f}".format(loc[0])
-            loc[1] = "{:.2f}".format(loc[1])
-            loc_trace_str += ", " + str(loc)
-        display.append(loc_trace_str)
-        display.append('===============================\n')
-        return "\n".join(display)
