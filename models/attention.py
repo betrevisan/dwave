@@ -49,7 +49,7 @@ class AttentionModel:
         self.h = h
         self.max_dist = sqrt(w**2 + h**2)
         self.num_reads = num_reads
-        self.name = "AttentionModel"
+        self.name = name
     
     def qubo(self, dist):
         """Updates the QUBO given the distance to the target
