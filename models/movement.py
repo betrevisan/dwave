@@ -97,18 +97,21 @@ class MovementModel:
 
         Parameters
         ----------
-        dist : float
-            The distance that will guide the QUBO formulation.
+        agent : Agent
+            Agent in the predator-prey environment.
+        agent_perceived : [float]
+            The agent's perceived location [x, y]
+        prey_perceived : [float]
+            The prey's perceived location [x, y]
+        predator_perceived : [float]
+            The predator's perceived location [x, y]
+        speed : float
+            The speed of movement
 
         Returns
         -------
-        float
-            The allocated attention level.
-
-        Raises
-        ------
-        ValueError
-            If no distance or a negative distance are passed.
+        [float]
+            The target position that guides the direction of movement
         """
         # Calculate the possible directions of movement
         center = agent_perceived
@@ -121,15 +124,17 @@ class MovementModel:
             y = radius * np.sin(np.radians(angle)) + center[1]
             directions.append([x, y])
 
+        # Calculate distance between prey and directions of movement
         dist2prey = []
         for p in directions:
             dist2prey.append(math.dist(p, prey_perceived))
         
+        # Calculate distance between predator and directions of movement
         dist2predator = []
         for p in directions:
             dist2predator.append(math.dist(p, predator_perceived))
 
-        # Pass movement options and location of prey and location of predator to QUBO
+        # Update QUBO formulation
         Q = self.qubo(dist2prey, dist2predator)
 
         # Define sampler
@@ -149,6 +154,29 @@ class MovementModel:
         return move_dir
 
     def move(self, agent, agent_perceived, prey_perceived, predator_perceived, prey_real, predator_real, speed):
+        """Moves the agent into the direction decided by the quantum model
+
+        Parameters
+        ----------
+        agent : Agent
+            Agent in the predator-prey environment.
+        agent_perceived : [float]
+            The agent's perceived location [x, y]
+        prey_perceived : [float]
+            The prey's perceived location [x, y]
+        predator_perceived : [float]
+            The predator's perceived location [x, y]
+        prey_real : [float]
+            The prey's real location [x, y]
+        predator_real : [float]
+            The predator's real location [x, y]
+        speed : float
+            The speed of movement
+
+        Returns
+        -------
+        void
+        """
         # Get the point to move to
         move_dir = self.decide_movement(agent, agent_perceived, prey_perceived, predator_perceived, speed)
 
