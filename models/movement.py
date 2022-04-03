@@ -18,6 +18,8 @@ class MovementModel:
         Maximum possible distance in the coordinate plane
     num_reads : int
         Number of reads in the annealer
+    total_time : floar
+        Total sampling time for this model
     name : str, optional
         The name of the model
 
@@ -49,6 +51,7 @@ class MovementModel:
         self.h = h
         self.max_dist = np.sqrt(w**2 + h**2)
         self.num_reads = num_reads
+        self.total_time = 0
         self.name = name
 
     def qubo(self, dist2prey, dist2predator):
@@ -142,6 +145,10 @@ class MovementModel:
         
         # Run sampler
         sampler_output = sampler.sample_qubo(Q, num_reads = self.num_reads)
+
+        # Time statistics in microseconds
+        sampling_time = sampler_output.info["timing"]["qpu_sampling_time"]
+        self.total_time += sampling_time
 
         # Get the movement direction
         move_dir_idx = sampler_output.record.sample[0]

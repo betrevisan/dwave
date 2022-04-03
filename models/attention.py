@@ -18,6 +18,8 @@ class AttentionModel:
         Maximum possible distance in the coordinate plane
     num_reads : int
         Number of reads in the annealer
+    total_time : floar
+        Total sampling time for this model
     name : str, optional
         The name of the model
 
@@ -49,6 +51,7 @@ class AttentionModel:
         self.h = h
         self.max_dist = sqrt(w**2 + h**2)
         self.num_reads = num_reads
+        self.total_time = 0
         self.name = name
     
     def qubo(self, dist):
@@ -138,7 +141,8 @@ class AttentionModel:
         sampler_output = sampler.sample_qubo(Q, num_reads = self.num_reads)
 
         # Time statistics in microseconds
-        print(sampler_output.info["timing"])
+        sampling_time = sampler_output.info["timing"]["qpu_sampling_time"]
+        self.total_time += sampling_time
 
         # Get the attention
         attn = sampler_output.record.sample[0]

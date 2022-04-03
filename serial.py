@@ -65,6 +65,10 @@ def main():
     print(prey)
     print(predator)
 
+    print("Attention model total sampling time: " + str(attention_model.total_time))
+    print("Movement model total sampling time: " + str(movement_model.total_time))
+    print("Quantum model total sampling time: " + str(attention_model.total_time + movement_model.total_time))
+
     return agent.attn_trace
 
 if __name__ == "__main__":

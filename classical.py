@@ -6,6 +6,7 @@ and decide on optimal movement direction).
 """
 
 import math
+import time
 from models import attention_classical as attention_mod
 from characters import agent as agent_mod
 from characters import predator as predator_mod
@@ -22,6 +23,9 @@ SPEED = 30
 BIAS = 0.8
         
 def main():
+    # Compute time stats
+    start_time = time.time()
+
     # Initialize characters
     agent = agent_mod.Agent(WIDTH, HEIGHT)
     prey = prey_mod.Prey(WIDTH, HEIGHT)
@@ -53,6 +57,10 @@ def main():
     print(agent)
     # print(prey)
     # print(predator)
+
+    # Print compute time (in microseconds)
+    end_time = time.time()
+    print("Compute time for the classical version: " +  str((end_time - start_time) * 1000000))
 
     return agent.attn_trace
 
