@@ -196,6 +196,59 @@ class Agent:
         # Keep track of distances
         self.track_dist([math.dist(prey_real, self.loc), math.dist(predator_real, self.loc)])
 
+    def move_quantum(self, agent_perceived, prey_perceived, predator_perceived,
+                prey_real, predator_real, speed, target):
+        # Track perceived locations
+        self.perceived_agent_trace.append(list(agent_perceived))
+        self.perceived_prey_trace.append(list(prey_perceived))
+        self.perceived_predator_trace.append(list(predator_perceived))
+
+        # If the distance between prey and predator is less than 10 it counts as a contact
+        buffer = 10
+        # Vector for the agent's real location
+        agent_real_v = np.array(self.loc)
+        # Vector for the agent's perceived location
+        agent_perceived_v = np.array(agent_perceived)
+        # Vector for the prey's real location
+        prey_real_v = np.array(prey_real)
+        # Vector for the predator's real location
+        pred_real_v = np.array(predator_real)
+        # Vector for the movement's target location
+        target_v = np.array(target)
+
+        # Real distance between the agent and the predator
+        real_dist2pred = np.linalg.norm(pred_real_v - agent_real_v)
+        # If the agent has been caught, set alive to False
+        if real_dist2pred < buffer:
+            self.alive = False
+
+        # Vector for the direction of movement
+        move_v =  target_v - agent_perceived_v
+
+        # Move agent alongside movement vector at a given speed
+        d = speed / np.linalg.norm(move_v)
+        if d > 1:
+            d = 1
+        new_loc = np.floor((agent_real_v + d * move_v))
+
+        # Update agent's location
+        self.loc = new_loc
+
+        # Real distance between the prey and the agent
+        real_dist2prey = np.linalg.norm(prey_real_v - np.array(self.loc))
+        # If the agent has reached its prey, set feasted to True
+        if real_dist2prey < buffer:
+            self.feasted = True
+        
+        # If the new location is out of range, bounce back
+        self.bounce_back()
+
+        # Update location trace
+        self.loc_trace.append(list(self.loc))
+
+        # Keep track of distances
+        self.track_dist([math.dist(prey_real, self.loc), math.dist(predator_real, self.loc)])
+
     def bounce_back(self):
         """If the location is out of range, bounces it back into range
 

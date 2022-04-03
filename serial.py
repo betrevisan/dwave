@@ -7,6 +7,7 @@ and decide on optimal movement direction).
 
 import math
 from models import attention as attention_mod
+from models import movement as movement_mod
 from characters import agent as agent_mod
 from characters import predator as predator_mod
 from characters import prey as prey_mod
@@ -33,7 +34,7 @@ def main():
     attention_model = attention_mod.AttentionModel(WIDTH, HEIGHT, NUM_READS)
 
     # Initialize the movement model
-    # movement_model = MovementModel()
+    movement_model = movement_mod.MovementModel(WIDTH, HEIGHT, NUM_READS)
 
     # Run model for n iterations
     for _ in range(ITERATIONS):
@@ -55,8 +56,10 @@ def main():
         prey_perceived = agent.perceive(prey, attn_prey)
         predator_perceived = agent.perceive(predator, attn_predator)
 
+        movement_model.move(agent, agent_perceived, prey_perceived, predator_perceived, prey.loc, predator.loc, SPEED)
+
         # Move Agent
-        agent.move(agent_perceived, prey_perceived, predator_perceived, prey.loc, predator.loc, SPEED, BIAS)
+        # agent.move(agent_perceived, prey_perceived, predator_perceived, prey.loc, predator.loc, SPEED, BIAS)
 
     print(agent)
     print(prey)
