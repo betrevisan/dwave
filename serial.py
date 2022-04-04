@@ -1,146 +1,101 @@
-# This file implements the serial approach to the predator-prey model in quantum computing
+"""Predator-Prey Task (Serial Approach)
 
-from dwave.system import EmbeddingComposite, DWaveSampler
-from numpy import sqrt
+This implements the Predator-Prey task within quantum computing using the 
+serial approach (i.e. at each time step, allocate attention, observe locations,
+and decide on optimal movement direction).
+"""
+
+import math
+from metrics import metrics as metrics_mod
+from models import attention as attention_mod
+from models import movement as movement_mod
 from characters import agent as agent_mod
 from characters import predator as predator_mod
 from characters import prey as prey_mod
 
-# Number of iterations of the model
-ITERATIONS = 20
+# Number of iterations in the game
+ITERATIONS = 1
 # Number of reads in the annealer
 NUM_READS = 5
-# Width and height of the coordinate plane
+# Width and height of the game's coordinate plane
 WIDTH = 500
 HEIGHT = 500
-# Maximum distance between two points in the plane
-MAX_DIST = sqrt(WIDTH**2 + HEIGHT**2)
-# For now, speed is always constant
+# For now, speed (how fast a character moves at each time step) is always constant
 SPEED = 30
-# Bias on pursuing over avoiding for the agent's movement
-BIAS = 0.8
-
-# Auxiliar function for calculating the distance between two points
-def dist(p1, p2):
-    return sqrt((p2[0] - p1[0])**2 + (p2[1] - p1[1])**2)
-
-# Class for the attention allocation model
-class AttentionModel:
-
-    def __init__(self):
-        self.name = "AttentionModel"
-    
-    # Updates the QUBO given the distance to the target
-    def QUBO(self, dist):
-        # Ratio between distance and maximum possible distance
-        d = dist/MAX_DIST
-
-        # Attention level dependent on cost
-        Q_cost = {('25','25'): -(1 - 0.25),
-            ('50','50'): -(1 - 0.5),
-            ('75','75'): -(1 - 0.75),
-            ('100','100'): -(1 - 1),
-            ('25','50'): -(-(1 - 0.25) - (1 - 0.5)),
-            ('25','75'): -(-(1 - 0.25) - (1 - 0.75)),
-            ('25','100'): -(-(1 - 0.25) - -(1 - 1)),
-            ('50','75'): -(-(1 - 0.5) - (1 - 0.75)),
-            ('50','100'): -(-(1 - 0.5) - (1 - 1)),
-            ('75','100'): -(-(1 - 0.75) - (1 - 1))}
-
-        # Attention level dependent on distance
-        Q_dist = {('25','25'): -d,
-            ('50','50'): -0.5*d - 0.4,
-            ('75','75'): 0.5*d - 0.9,
-            ('100','100'): d - 1,
-            ('25','50'): -(-d -0.5*d - 0.4),
-            ('25','75'): -(-d +0.5*d - 0.9),
-            ('25','100'): -(-d +d - 1),
-            ('50','75'): -(-0.5*d - 0.4 +0.5*d - 0.9),
-            ('50','100'): -(-0.5*d - 0.4 + d - 1),
-            ('75','100'): -(0.5*d - 0.9 + d - 1)}
-
-        # Combine both QUBO formulations (cost and distance)
-        Q_complete = {}
-        for key in list(Q_cost.keys()):
-            Q_complete[key] = Q_cost[key] + Q_dist[key]
-
-        return Q_complete
-    
-    # Allocates to a character given the distance to their target
-    def alloc_attention(self, dist):
-        # Get the QUBO formulation for the given distance
-        Q = self.QUBO(dist)
-
-        # Run sampler
-        sampler = EmbeddingComposite(DWaveSampler())
-        
-        # Retrieve output
-        sampler_output = sampler.sample_qubo(Q, num_reads = NUM_READS)
-
-        # Get the attention
-        attention = sampler_output.record.sample[0]
-        if attention[0] == 1:
-            attention = 100
-        elif attention[1] == 1:
-            attention = 25
-        elif attention[2] == 1:
-            attention = 50
-        else:
-            attention = 75
-
-        return attention
-
 
 def main():
+    # Initialize metrics instance
+    metrics = metrics_mod.Metrics("Serial Quantum Implementation")
+
     # Initialize characters
     agent = agent_mod.Agent(WIDTH, HEIGHT)
     prey = prey_mod.Prey(WIDTH, HEIGHT)
     predator = predator_mod.Predator(WIDTH, HEIGHT)
 
     # Initialize the attention allocation model
-    attention_model = AttentionModel()
+    attention_model = attention_mod.AttentionModel(WIDTH, HEIGHT, NUM_READS)
+
+    # Initialize the movement model
+    movement_model = movement_mod.MovementModel(WIDTH, HEIGHT, NUM_READS)
 
     # Run model for n iterations
     for _ in range(ITERATIONS):
 
-        # Get the attention levels for all three characters
-        # Prey's attention level using its distance to the agent
-        attention_prey = attention_model.alloc_attention(dist(prey.loc, agent.loc)) 
-        # Agent's attention level using the average between its distance to the prey and its distance to the predator
-        attention_agent = attention_model.alloc_attention((dist(agent.loc, prey.loc) + dist(agent.loc, predator.loc))/2)
-        # Predator's attention level using its distance to the agent
-        attention_predator = attention_model.alloc_attention(dist(predator.loc, agent.loc))
-
-        # Normalize attention levels so that they don't exceed 100
-        total_attention = attention_prey + attention_agent + attention_predator
-        attention_prey = attention_prey/total_attention * 100
-        attention_agent = attention_agent/total_attention * 100
-        attention_predator = attention_predator/total_attention * 100
-
-        # Keep track of attention levels
-        agent.track_attention([attention_agent, attention_prey, attention_predator])
+        attn_agent, attn_prey, attn_predator = attention_model.get_attention_levels(agent,
+                                                                                prey,
+                                                                                predator)
         
-        # Move Prey and Predator
-        prey.avoid(agent.perceive(100), agent.loc, SPEED) # Prey avoids agent
-        predator.pursue(agent.perceive(100), agent.loc, SPEED) # Predator pursues agent
+        # Prey avoids agent
+        prey.avoid(agent.loc, SPEED)
+        # Predator pursues agent
+        predator.pursue(agent.loc, SPEED)
+
+        # Use the quantum model for the agent's movement
+        # call the movement model
+
+        # Get the perceived locations
+        agent_perceived = agent.perceive(agent, attn_agent)
+        prey_perceived = agent.perceive(prey, attn_prey)
+        predator_perceived = agent.perceive(predator, attn_predator)
+
+        movement_model.move(agent, agent_perceived, prey_perceived, predator_perceived, prey.loc, predator.loc, SPEED)
 
         # Move Agent
-        agent.move(agent.perceive(attention_agent),
-                    prey.perceive(attention_prey),
-                    predator.perceive(attention_predator),
-                    prey.loc,
-                    predator.loc,
-                    SPEED,
-                    BIAS)
+        # agent.move(agent_perceived, prey_perceived, predator_perceived, prey.loc, predator.loc, SPEED, BIAS)
 
-        # Keep track of distances
-        agent.track_dist([dist(prey.loc, agent.loc), dist(predator.loc, agent.loc)])
-    
-    print(agent)
-    # print(prey)
-    # print(predator)
+    # Add general metrics
+    metrics.w = WIDTH
+    metrics.h = HEIGHT
+    metrics.iterations = ITERATIONS
+    metrics.num_reads = NUM_READS
 
-    return agent.attention_trace
+    # Add agent to metrics
+    metrics.agent_alive = agent.alive
+    metrics.agent_feasted = agent.feasted
+    metrics.agent_loc_trace = agent.loc_trace
+    metrics.agent_perceived_loc_trace = agent.perceived_agent_trace
+    metrics.prey_perceived_loc_trace = agent.perceived_prey_trace
+    metrics.predator_perceived_loc_trace = agent.perceived_predator_trace
+    metrics.dist_agent2prey_trace = [dist[0] for dist in agent.dist_trace]
+    metrics.dist_agent2predator_trace = [dist[1] for dist in agent.dist_trace]
+
+    # Add prey to metrics
+    metrics.prey_alive = prey.alive
+    metrics.prey_loc_trace = prey.loc_trace
+
+    # Add predator to metrics
+    metrics.predator_feasted = predator.feasted
+    metrics.predator_loc_trace = predator.loc_trace
+
+    # Add attention trace to metrics
+    metrics.attention_trace = agent.attn_trace
+
+    # Add time to metrics
+    metrics.attention_time = attention_model.total_time
+    metrics.movement_time = movement_model.total_time
+    metrics.total_time = attention_model.total_time + movement_model.total_time
+
+    return metrics
 
 if __name__ == "__main__":
     main()
