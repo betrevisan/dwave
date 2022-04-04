@@ -14,7 +14,7 @@ from characters import predator as predator_mod
 from characters import prey as prey_mod
 
 # Number of iterations in the game
-ITERATIONS = 1
+ITERATIONS = 2
 # Width and height of the game's coordinate plane
 WIDTH = 500
 HEIGHT = 500
@@ -62,10 +62,19 @@ def main():
         agent.move(agent_perceived, prey_perceived, predator_perceived, prey.loc, predator.loc, SPEED, BIAS)
         metrics.movement_time += (time.time() - start_movement_time) * 1000000 
 
+    # Add general metrics
+    metrics.w = WIDTH
+    metrics.h = HEIGHT
+    metrics.iterations = ITERATIONS
+    metrics.bias = BIAS
+
     # Add agent to metrics
     metrics.agent_alive = agent.alive
     metrics.agent_feasted = agent.feasted
     metrics.agent_loc_trace = agent.loc_trace
+    metrics.agent_perceived_loc_trace = agent.perceived_agent_trace
+    metrics.prey_perceived_loc_trace = agent.perceived_prey_trace
+    metrics.predator_perceived_loc_trace = agent.perceived_predator_trace
     metrics.dist_agent2prey_trace = [dist[0] for dist in agent.dist_trace]
     metrics.dist_agent2predator_trace = [dist[1] for dist in agent.dist_trace]
 
@@ -83,9 +92,7 @@ def main():
     # Add total time to metrics
     metrics.total_time = (time.time() - start_time) * 1000000
 
-    print(metrics)
-
-    return
+    return metrics
 
 if __name__ == "__main__":
     main()

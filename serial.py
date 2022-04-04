@@ -22,8 +22,6 @@ WIDTH = 500
 HEIGHT = 500
 # For now, speed (how fast a character moves at each time step) is always constant
 SPEED = 30
-# Bias on pursuing over avoiding for the agent's movement
-BIAS = 0.8
 
 def main():
     # Initialize metrics instance
@@ -65,10 +63,19 @@ def main():
         # Move Agent
         # agent.move(agent_perceived, prey_perceived, predator_perceived, prey.loc, predator.loc, SPEED, BIAS)
 
+    # Add general metrics
+    metrics.w = WIDTH
+    metrics.h = HEIGHT
+    metrics.iterations = ITERATIONS
+    metrics.num_reads = NUM_READS
+
     # Add agent to metrics
     metrics.agent_alive = agent.alive
     metrics.agent_feasted = agent.feasted
     metrics.agent_loc_trace = agent.loc_trace
+    metrics.agent_perceived_loc_trace = agent.perceived_agent_trace
+    metrics.prey_perceived_loc_trace = agent.perceived_prey_trace
+    metrics.predator_perceived_loc_trace = agent.perceived_predator_trace
     metrics.dist_agent2prey_trace = [dist[0] for dist in agent.dist_trace]
     metrics.dist_agent2predator_trace = [dist[1] for dist in agent.dist_trace]
 
@@ -88,9 +95,7 @@ def main():
     metrics.movement_time = movement_model.total_time
     metrics.total_time = attention_model.total_time + movement_model.total_time
 
-    print(metrics)
-
-    return agent.attn_trace
+    return metrics
 
 if __name__ == "__main__":
     main()
