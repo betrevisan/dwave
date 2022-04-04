@@ -14,7 +14,7 @@ from characters import predator as predator_mod
 from characters import prey as prey_mod
 
 # Number of iterations in the game
-ITERATIONS = 5
+ITERATIONS = 1
 # Width and height of the game's coordinate plane
 WIDTH = 500
 HEIGHT = 500
