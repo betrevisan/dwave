@@ -14,7 +14,7 @@ from characters import predator as predator_mod
 from characters import prey as prey_mod
 
 # Number of iterations in the game
-ITERATIONS = 1
+ITERATIONS = 5
 # Number of reads in the annealer
 NUM_READS = 5
 # Width and height of the game's coordinate plane

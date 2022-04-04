@@ -53,59 +53,59 @@ class Metrics:
         display = ['\n===============================']
         display.append(" ".join(self.name.upper()) + "\n")
         display.append('General Metrics')
-        display.append("\tWidth x Height: " + str(self.w) + " x " + str(self.h))
-        display.append("\tIterations: " + str(self.iterations))
+        display.append("\tWidth x Height:                           " + str(self.w) + " x " + str(self.h))
+        display.append("\tIterations:                               " + str(self.iterations))
         if self.num_reads != -1:
-            display.append("\tAnnealer reads per iteration: " + str(self.num_reads))
+            display.append("\tAnnealer reads per iteration:             " + str(self.num_reads))
         if self.bias != -1:
-            display.append("\tPursuit bias: " + str(self.bias))
+            display.append("\tPursuit bias:                             " + str(self.bias))
 
         display.append('\nTime Metrics')
-        display.append("\tTotal time (in microseconds): " + "{:.2f}".format(self.total_time))
-        display.append("\t\tAttention time:       " + "{:.2f}".format(self.attention_time))
-        display.append("\t\tMovement time:        " + "{:.2f}".format(self.movement_time))
+        display.append("\tTotal time (in microseconds):             " + "{:.2f}".format(self.total_time))
+        display.append("\t\tAttention time:                   " + "{:.2f}".format(self.attention_time))
+        display.append("\t\tMovement time:                    " + "{:.2f}".format(self.movement_time))
 
         display.append('\nAttention Allocation Metrics')
-        trace_str = "\tTrace: "
+        trace_str = "\tTrace:                                    "
         for attn in self.attention_trace:
             trace_str += ", " + str(attn)
         display.append(trace_str.replace(", ","",1))
 
         display.append('\nAgent Metrics')
-        display.append('\tAlive:                      ' + str(self.agent_alive))
-        display.append('\tFeasted:                    ' + str(self.agent_feasted))
-        display.append('\tSteps taken:                ' + str(len(self.agent_loc_trace) - 1))
-        trace_str = "\tLocation trace:             "
+        display.append('\tAlive:                                    ' + str(self.agent_alive))
+        display.append('\tFeasted:                                  ' + str(self.agent_feasted))
+        display.append('\tSteps taken:                              ' + str(len(self.agent_loc_trace) - 1))
+        trace_str = "\tLocation trace:                           "
         for loc in self.agent_loc_trace:
             loc[0] = "{:.2f}".format(loc[0])
             loc[1] = "{:.2f}".format(loc[1])
             trace_str += ", " + str(loc)
         display.append(trace_str.replace(", ","",1))
-        trace_str = "\tAgent perceived location trace: "
+        trace_str = "\tAgent perceived location trace:           "
         for loc in self.agent_perceived_loc_trace:
             loc[0] = "{:.2f}".format(loc[0])
             loc[1] = "{:.2f}".format(loc[1])
             trace_str += ", " + str(loc)
         display.append(trace_str.replace(", ","",1))
-        trace_str = "\tDistance to prey trace:         "
+        trace_str = "\tDistance to prey trace:                   "
         for dist in self.dist_agent2prey_trace:
             trace_str += ", " + "{:.2f}".format(dist)
         display.append(trace_str.replace(", ","",1))
-        trace_str = "\tDistance to predator trace: "
+        trace_str = "\tDistance to predator trace:               "
         for dist in self.dist_agent2predator_trace:
             trace_str += ", " + "{:.2f}".format(dist)
         display.append(trace_str.replace(", ","",1))
 
         display.append('\nPrey Metrics')
-        display.append('\tAlive:                      ' + str(self.prey_alive))
-        display.append('\tSteps taken:                ' + str(len(self.prey_loc_trace) - 1))
-        trace_str = "\tLocation trace:             "
+        display.append('\tAlive:                                    ' + str(self.prey_alive))
+        display.append('\tSteps taken:                              ' + str(len(self.prey_loc_trace) - 1))
+        trace_str = "\tLocation trace:                           "
         for loc in self.prey_loc_trace:
             loc[0] = "{:.2f}".format(loc[0])
             loc[1] = "{:.2f}".format(loc[1])
             trace_str += ", " + str(loc)
         display.append(trace_str.replace(", ","",1))
-        trace_str = "\tAgent's perceived prey location trace: "
+        trace_str = "\tAgent's perceived prey location trace:    "
         for loc in self.prey_perceived_loc_trace:
             loc[0] = "{:.2f}".format(loc[0])
             loc[1] = "{:.2f}".format(loc[1])
@@ -113,9 +113,9 @@ class Metrics:
         display.append(trace_str.replace(", ","",1))
 
         display.append('\nPredator Metrics')
-        display.append('\tFeasted:                    ' + str(self.predator_feasted))
-        display.append('\tSteps taken:                ' + str(len(self.predator_loc_trace) - 1))
-        trace_str = "\tLocation trace:             "
+        display.append('\tFeasted:                                   ' + str(self.predator_feasted))
+        display.append('\tSteps taken:                               ' + str(len(self.predator_loc_trace) - 1))
+        trace_str = "\tLocation trace:                            "
         for loc in self.predator_loc_trace:
             loc[0] = "{:.2f}".format(loc[0])
             loc[1] = "{:.2f}".format(loc[1])
